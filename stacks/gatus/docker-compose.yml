@@ -1,0 +1,19 @@
+services:
+  gatus:
+    image: twinproduction/gatus:latest
+    restart: unless-stopped
+    volumes:
+      # The monitor list lives in config.yaml next to this file — edit that to add monitors.
+      - ./config.yaml:/config/config.yaml:ro
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.gatus.rule=Host(`status.tech.lanmine.no`)
+      - traefik.http.routers.gatus.service=gatus
+      - traefik.http.services.gatus.loadbalancer.server.port=8080
+
+networks:
+  traefik:
+    external: true
