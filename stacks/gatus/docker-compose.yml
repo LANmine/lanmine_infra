@@ -1,10 +1,29 @@
 services:
+  # Bind mounts are disabled on this host (so a compose file can never mount a
+  # host path like the Docker socket). Instead, this tiny init container pulls
+  # config.yaml from the repo into a named volume before Gatus starts.
+  # Apprentices only ever edit config.yaml — this part never needs to change.
+  config-loader:
+    image: curlimages/curl:latest
+    restart: "no"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >-
+        curl -sSf -H 'Accept: application/vnd.github.raw'
+        'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/gatus/config.yaml?ref=main'
+        -o /config/config.yaml
+    volumes:
+      - config:/config
+
   gatus:
     image: twinproduction/gatus:latest
     restart: unless-stopped
+    depends_on:
+      config-loader:
+        condition: service_completed_successfully
     volumes:
-      # The monitor list lives in config.yaml next to this file — edit that to add monitors.
-      - ./config.yaml:/config/config.yaml:ro
+      - config:/config
     networks:
       - traefik
     labels:
@@ -13,6 +32,9 @@ services:
       - traefik.http.routers.gatus.rule=Host(`status.tech.lanmine.no`)
       - traefik.http.routers.gatus.service=gatus
       - traefik.http.services.gatus.loadbalancer.server.port=8080
+
+volumes:
+  config:
 
 networks:
   traefik:
