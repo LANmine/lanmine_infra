@@ -2,6 +2,8 @@ services:
   web:
     image: httpd:latest
     restart: unless-stopped
+    environment:
+      - TZ=Europe/Oslo
     networks:
       - traefik
     labels:
