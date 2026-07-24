@@ -1,0 +1,52 @@
+# Glance dashboard config — this file IS the dashboard.
+# Add widgets or links by editing this file and opening a Pull Request.
+# Full reference: https://github.com/glanceapp/glance/blob/main/docs/configuration.md
+
+pages:
+  - name: Home
+    columns:
+      - size: small
+        widgets:
+          - type: clock
+            hour-format: 24h
+            timezone: Europe/Oslo
+
+          - type: weather
+            location: Oslo, Norway
+            units: metric
+
+      - size: full
+        widgets:
+          - type: monitor
+            title: LANmine services
+            cache: 1m
+            sites:
+              - title: IT-Tools
+                url: https://tools.tech.lanmine.no
+              - title: Speed test
+                url: https://speed.tech.lanmine.no
+              - title: Status page
+                url: https://status.tech.lanmine.no
+              - title: Example
+                url: https://example.tech.lanmine.no
+
+          - type: hacker-news
+
+      - size: small
+        widgets:
+          - type: bookmarks
+            groups:
+              - title: LANmine
+                links:
+                  - title: Status (Gatus)
+                    url: https://status.tech.lanmine.no
+                  - title: Speed test
+                    url: https://speed.tech.lanmine.no
+                  - title: IT-Tools
+                    url: https://tools.tech.lanmine.no
+              - title: Team
+                links:
+                  - title: Infra repo
+                    url: https://github.com/LANmine/lanmine_infra
+                  - title: LANmine
+                    url: https://lanmine.no
