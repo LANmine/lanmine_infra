@@ -18,6 +18,9 @@ on:
     # 02:17 UTC ≈ 04:17 Oslo — nightly, off-peak. Refreshes all :latest images.
     - cron: '17 2 * * *'
 
+permissions:
+  contents: read
+
 concurrency:
   group: deploy-main
   cancel-in-progress: false
@@ -52,4 +55,10 @@ jobs:
           REPO_URL: https://github.com/LANmine/lanmine_infra
           GIT_REF: refs/heads/main
           SECRETS_JSON: ${{ toJSON(secrets) }}
-        run: python3 scripts/deploy_stacks.py ${{ steps.pick.outputs.names }}
+          STACK_NAMES: ${{ steps.pick.outputs.names }}
+        run: |
+          for n in $STACK_NAMES; do
+            printf '%s' "$n" | grep -qE '^[a-z0-9][a-z0-9._-]*$' \
+              || { echo "Refusing unsafe stack name: $n"; exit 1; }
+          done
+          python3 scripts/deploy_stacks.py $STACK_NAMES
