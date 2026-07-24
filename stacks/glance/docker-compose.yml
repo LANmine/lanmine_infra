@@ -1,0 +1,41 @@
+services:
+  # Bind mounts are disabled on this host, so an init container pulls glance.yml
+  # from the repo into a named volume before Glance starts.
+  # Apprentices only ever edit glance.yml.
+  config-loader:
+    image: curlimages/curl:latest
+    restart: "no"
+    user: "0:0"          # write to the fresh named volume (owned by root)
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >-
+        curl -sSf -H 'Accept: application/vnd.github.raw'
+        'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/glance/glance.yml?ref=main'
+        -o /app/config/glance.yml
+    volumes:
+      - config:/app/config
+
+  glance:
+    image: glanceapp/glance:latest
+    restart: unless-stopped
+    depends_on:
+      config-loader:
+        condition: service_completed_successfully
+    volumes:
+      - config:/app/config
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.glance.rule=Host(`dash.tech.lanmine.no`)
+      - traefik.http.routers.glance.service=glance
+      - traefik.http.services.glance.loadbalancer.server.port=8080
+
+volumes:
+  config:
+
+networks:
+  traefik:
+    external: true
