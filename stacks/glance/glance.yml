@@ -34,8 +34,6 @@ pages:
             sites:
               - title: IT-Tools
                 url: https://tools.tech.lanmine.no
-              - title: Speed test
-                url: https://speed.tech.lanmine.no
               - title: Status page
                 url: https://status.tech.lanmine.no
               - title: Example
@@ -49,8 +47,6 @@ pages:
                 links:
                   - title: Status (Gatus)
                     url: https://status.tech.lanmine.no
-                  - title: Speed test
-                    url: https://speed.tech.lanmine.no
                   - title: IT-Tools
                     url: https://tools.tech.lanmine.no
               - title: Team
