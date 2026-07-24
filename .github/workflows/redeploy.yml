@@ -1,0 +1,49 @@
+name: Redeploy
+
+# Manually redeploy one or more stacks from the Actions tab.
+# Use this to pick up a changed secret value, or a new :latest image,
+# without changing any file in the repo.
+#
+#   Actions -> Redeploy -> Run workflow -> type a stack name (or "all")
+on:
+  workflow_dispatch:
+    inputs:
+      stacks:
+        description: 'Stack(s) to redeploy: a name, several space-separated names, or "all"'
+        required: true
+        default: all
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve which stacks to redeploy
+        id: pick
+        env:
+          STACKS_INPUT: ${{ inputs.stacks }}
+        run: |
+          set -euo pipefail
+          if [ "$STACKS_INPUT" = "all" ]; then
+            names=$(git ls-files 'stacks/*/docker-compose.yml' | awk -F/ '{print $2}' | sort -u | tr '\n' ' ')
+          else
+            names="$STACKS_INPUT"
+          fi
+          echo "Redeploying: $names"
+          echo "names=$names" >> "$GITHUB_OUTPUT"
+
+      - name: Redeploy stacks to Portainer
+        if: steps.pick.outputs.names != ''
+        env:
+          PORTAINER_URL: https://portainer.ragnarok.eslg.no
+          PORTAINER_API_KEY: ${{ secrets.PORTAINER_API_KEY }}
+          PORTAINER_ENDPOINT_ID: '7'
+          REPO_URL: https://github.com/LANmine/lanmine_infra
+          GIT_REF: refs/heads/main
+          SECRETS_JSON: ${{ toJSON(secrets) }}
+        run: python3 scripts/deploy_stacks.py ${{ steps.pick.outputs.names }}
