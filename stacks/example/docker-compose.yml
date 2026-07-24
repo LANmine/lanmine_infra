@@ -10,6 +10,11 @@ services:
       - traefik.http.routers.example.rule=Host(`example.tech.lanmine.no`)
       - traefik.http.routers.example.service=example
       - traefik.http.services.example.loadbalancer.server.port=80
+    volumes:
+      - htdocs:/usr/local/apache2/htdocs
+
+volumes:
+  htdocs:
 
 networks:
   traefik:
