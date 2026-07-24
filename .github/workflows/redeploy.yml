@@ -5,6 +5,8 @@ name: Redeploy
 # without changing any file in the repo.
 #
 #   Actions -> Redeploy -> Run workflow -> type a stack name (or "all")
+#
+# It also runs automatically every night to pull the latest images for all stacks.
 on:
   workflow_dispatch:
     inputs:
@@ -12,6 +14,9 @@ on:
         description: 'Stack(s) to redeploy: a name, several space-separated names, or "all"'
         required: true
         default: all
+  schedule:
+    # 02:17 UTC ≈ 04:17 Oslo — nightly, off-peak. Refreshes all :latest images.
+    - cron: '17 2 * * *'
 
 concurrency:
   group: deploy-main
@@ -26,10 +31,11 @@ jobs:
       - name: Resolve which stacks to redeploy
         id: pick
         env:
+          # Empty on the scheduled run -> treated as "all".
           STACKS_INPUT: ${{ inputs.stacks }}
         run: |
           set -euo pipefail
-          if [ "$STACKS_INPUT" = "all" ]; then
+          if [ -z "$STACKS_INPUT" ] || [ "$STACKS_INPUT" = "all" ]; then
             names=$(git ls-files 'stacks/*/docker-compose.yml' | awk -F/ '{print $2}' | sort -u | tr '\n' ' ')
           else
             names="$STACKS_INPUT"
