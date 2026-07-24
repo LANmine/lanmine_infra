@@ -29,11 +29,12 @@ jobs:
           if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ] \
              || ! git cat-file -e "${before}^{commit}" 2>/dev/null; then
             # First push / unknown base: consider all stacks.
-            files=$(git ls-files 'stacks/*/docker-compose.yml')
+            files=$(git ls-files 'stacks/')
           else
-            files=$(git diff --name-only "$before" '${{ github.sha }}' -- 'stacks/*/docker-compose.yml')
+            # Any changed file inside a stack folder (compose, config.yaml, etc.).
+            files=$(git diff --name-only "$before" '${{ github.sha }}' -- 'stacks/')
           fi
-          names=$(printf '%s\n' "$files" | awk -F/ 'NF>=3 {print $2}' | sort -u | tr '\n' ' ')
+          names=$(printf '%s\n' "$files" | awk -F/ 'NF>=3 && $1=="stacks" {print $2}' | sort -u | tr '\n' ' ')
           echo "Changed stacks: $names"
           echo "names=$names" >> "$GITHUB_OUTPUT"
 
