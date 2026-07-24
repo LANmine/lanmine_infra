@@ -8,6 +8,10 @@ on:
     paths:
       - 'stacks/**'
 
+# Least privilege: the workflow only needs to read the repo.
+permissions:
+  contents: read
+
 # Prevent two deploys from running at the same time.
 concurrency:
   group: deploy-main
@@ -50,4 +54,12 @@ jobs:
           # in its compose and have the matching secret injected automatically.
           # Adding a new secret needs NO change to this file.
           SECRETS_JSON: ${{ toJSON(secrets) }}
-        run: python3 scripts/deploy_stacks.py ${{ steps.changed.outputs.names }}
+          STACK_NAMES: ${{ steps.changed.outputs.names }}
+        run: |
+          # Names come from folder names in the repo — validate before use so a
+          # crafted path can't inject shell commands into the runner.
+          for n in $STACK_NAMES; do
+            printf '%s' "$n" | grep -qE '^[a-z0-9][a-z0-9._-]*$' \
+              || { echo "Refusing unsafe stack name: $n"; exit 1; }
+          done
+          python3 scripts/deploy_stacks.py $STACK_NAMES

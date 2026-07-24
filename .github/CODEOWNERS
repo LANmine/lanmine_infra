@@ -1,0 +1,6 @@
+# Changes to automation, deploy scripts, and CI config require review from a
+# maintainer (they run with repo secrets, so a bad change here is high-impact).
+# Apprentice changes under stacks/ are NOT affected by this file.
+
+/.github/       @hermanl0 @chhaugen
+/scripts/       @hermanl0 @chhaugen
