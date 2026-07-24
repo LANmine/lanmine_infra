@@ -86,6 +86,52 @@ Edit its `docker-compose.yml`, open a PR, get it merged. That's it — only that
 
 ---
 
+## Secrets (passwords, API keys, tokens)
+
+**Never write a secret directly in a compose file** — this repo is public.
+
+Instead, reference it with `${...}` and ask a maintainer to add it:
+
+```yaml
+    environment:
+      - ADMIN_PASSWORD=${UPTIME_ADMIN_PASSWORD}   # value comes from a GitHub secret
+```
+
+How it works:
+
+1. You reference `${UPTIME_ADMIN_PASSWORD}` in your compose and mention in your PR:
+   *"needs a secret called `UPTIME_ADMIN_PASSWORD`."*
+2. A **maintainer** adds it once under **repo → Settings → Secrets and variables → Actions →
+   New repository secret**, with that exact name.
+3. On deploy, the automation injects it into your service on the server. The value never
+   appears in the repo, in logs, or in the running config that others can read from GitHub.
+
+Notes:
+- **Secret names are global** across all stacks, so use a **unique, descriptive name**
+  (`GRAFANA_ADMIN_PASSWORD`, not `PASSWORD`) so two services don't clash.
+- Not every service needs a secret — see the next section.
+
+## Saving data (volumes)
+
+Every deploy **recreates** your container from scratch. Anything written *inside* the container
+is lost unless you store it in a **volume**. So any service that keeps data — a database, or an
+app where you log in / configure things — needs one:
+
+```yaml
+    volumes:
+      - data:/some/path/inside/the/app   # survives redeploys
+...
+volumes:
+  data:
+```
+
+Many apps (like **Uptime Kuma**, Nextcloud, Gitea) don't take a login as a secret at all — you
+just open the website the first time and create the admin account there. That account is saved in
+the app's **volume**, so as long as you have the volume, no secret goes in the repo. If you forget
+the volume, your admin account (and everything else) disappears on the next deploy.
+
+---
+
 ## Rules
 
 - ✅ **Every change goes through a Pull Request.** No pushing straight to `main`.
