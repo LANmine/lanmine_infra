@@ -6,10 +6,12 @@ This repo runs our servers. **Change a file here → open a Pull Request → it 
 
 ```mermaid
 flowchart LR
-  A[Edit a file<br/>in stacks/] --> B[Open a<br/>Pull Request]
-  B --> C[Teammate<br/>approves & merges]
-  C --> D[Deploys<br/>automatically]
-  D --> E[Live at<br/>name.tech.lanmine.no]
+  A(["✏️ Edit a file<br/>in stacks/"]) --> B(["🔀 Open a<br/>Pull Request"])
+  B --> C(["✅ Approve<br/>& merge"])
+  C --> D(["🚀 Auto-deploy"])
+  D --> E(["🌐 Live at<br/>name.tech.lanmine.no"])
+  classDef s fill:#1f6feb,stroke:#0b3,color:#fff
+  class A,B,C,D,E s
 ```
 
 ## Deploy a service
