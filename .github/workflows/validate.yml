@@ -1,0 +1,34 @@
+name: Validate stacks
+
+# Runs on every Pull Request that touches a stack.
+# It only checks that your docker-compose.yml is valid — it does NOT deploy anything.
+on:
+  pull_request:
+    paths:
+      - 'stacks/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check each changed compose file
+        run: |
+          set -euo pipefail
+          # An empty external network so `docker compose config` is happy.
+          docker network create traefik >/dev/null 2>&1 || true
+
+          shopt -s nullglob
+          failed=0
+          for f in stacks/*/docker-compose.yml; do
+            echo "::group::$f"
+            if docker compose -f "$f" config -q; then
+              echo "OK: $f is valid"
+            else
+              echo "::error file=$f::Invalid compose file"
+              failed=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $failed
