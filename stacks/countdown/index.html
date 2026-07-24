@@ -52,7 +52,7 @@
   <div class="wrap">
     <div class="kicker">esports lan gaming</div>
     <h1>LANmine&nbsp;42</h1>
-    <div class="dates">1&ndash;4 October 2026 &middot; Oslo</div>
+    <div class="dates">1&ndash;4 October 2026 &middot; Hvalerhallen</div>
     <div class="timer" id="timer">
       <div class="cell"><div class="num" id="d">--</div><div class="lbl">days</div></div>
       <div class="cell"><div class="num" id="h">--</div><div class="lbl">hours</div></div>
@@ -63,8 +63,8 @@
   </div>
   <div class="foot">see you at 13:37</div>
 <script>
-  // Target: LANmine 42 — 1 October 2026, 00:00 (Oslo, CEST = UTC+2). Edit to adjust.
-  const TARGET = new Date("2026-10-01T00:00:00+02:00").getTime();
+  // Target: LANmine 42 doors open — Thu 1 October 2026, 14:00 (CEST = UTC+2). Edit to adjust.
+  const TARGET = new Date("2026-10-01T14:00:00+02:00").getTime();
   const pad = n => String(n).padStart(2,"0");
   function tick(){
     const diff = TARGET - Date.now();
