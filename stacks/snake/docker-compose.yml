@@ -1,0 +1,39 @@
+services:
+  # Bind mounts are disabled, so an init container pulls index.html from the repo
+  # into a named volume, then nginx serves it. Edit index.html to change the game.
+  content-loader:
+    image: curlimages/curl:latest
+    restart: "no"
+    user: "0:0"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/snake/index.html?ref=main' -o /usr/share/nginx/html/index.html
+    volumes:
+      - site:/usr/share/nginx/html
+
+  snake:
+    image: nginx:alpine
+    restart: unless-stopped
+    depends_on:
+      content-loader:
+        condition: service_completed_successfully
+    volumes:
+      - site:/usr/share/nginx/html
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.snake.rule=Host(`snake.tech.lanmine.no`)
+      - traefik.http.routers.snake.service=snake
+      - traefik.http.services.snake.loadbalancer.server.port=80
+
+volumes:
+  site:
+
+networks:
+  traefik:
+    external: true

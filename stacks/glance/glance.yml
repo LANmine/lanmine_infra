@@ -52,3 +52,7 @@ pages:
                     url: https://lanmine.no/lan-event/the-meaning-of-lan/
                   - title: Infra repo
                     url: https://github.com/LANmine/lanmine_infra
+              - title: Fun
+                links:
+                  - title: Snake 🐍
+                    url: https://snake.tech.lanmine.no
