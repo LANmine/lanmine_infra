@@ -43,15 +43,12 @@ pages:
         widgets:
           - type: bookmarks
             groups:
-              - title: LANmine
+              # Links only — service health lives in the "LANmine services" widget.
+              - title: Links
                 links:
-                  - title: Status (Gatus)
-                    url: https://status.tech.lanmine.no
-                  - title: IT-Tools
-                    url: https://tools.tech.lanmine.no
-              - title: Team
-                links:
+                  - title: LANmine site
+                    url: https://lanmine.no
+                  - title: The event
+                    url: https://lanmine.no/lan-event/the-meaning-of-lan/
                   - title: Infra repo
                     url: https://github.com/LANmine/lanmine_infra
-                  - title: LANmine
-                    url: https://lanmine.no
