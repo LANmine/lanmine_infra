@@ -45,4 +45,8 @@ jobs:
           PORTAINER_ENDPOINT_ID: '7'
           REPO_URL: https://github.com/LANmine/lanmine_infra
           GIT_REF: refs/heads/main
+          # All repo secrets as a name->value map, so a stack can reference ${VAR}
+          # in its compose and have the matching secret injected automatically.
+          # Adding a new secret needs NO change to this file.
+          SECRETS_JSON: ${{ toJSON(secrets) }}
         run: python3 scripts/deploy_stacks.py ${{ steps.changed.outputs.names }}
