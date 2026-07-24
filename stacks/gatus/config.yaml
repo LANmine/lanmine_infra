@@ -25,14 +25,6 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
 
-  # TLS certificate expiry check — warns when the cert has < 7 days left.
-  - name: example-tls
-    group: services
-    url: "https://example.tech.lanmine.no"
-    interval: 1h
-    conditions:
-      - "[CERTIFICATE_EXPIRATION] > 168h"
-
 # --- How to add alerting (optional) -----------------------------------------
 # Uncomment and fill in to get notified. Put webhook URLs in a GitHub secret and
 # reference them here as ${DISCORD_WEBHOOK_URL} — never paste a real URL in this file.
