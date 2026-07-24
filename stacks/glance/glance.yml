@@ -18,6 +18,7 @@ pages:
       - size: full
         widgets:
           - type: iframe
+            title: Countdown
             source: https://countdown.tech.lanmine.no
             height: 360
 
