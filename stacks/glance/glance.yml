@@ -12,7 +12,7 @@ pages:
             timezone: Europe/Oslo
 
           - type: weather
-            location: Oslo, Norway
+            location: Hvaler, Norway
             units: metric
 
       - size: full
@@ -33,8 +33,6 @@ pages:
                 url: https://status.tech.lanmine.no
               - title: Example
                 url: https://example.tech.lanmine.no
-
-          - type: hacker-news
 
       - size: small
         widgets:
