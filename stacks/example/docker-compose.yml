@@ -2,8 +2,6 @@ services:
   web:
     image: httpd:latest
     restart: unless-stopped
-    environment:
-      - INJECT_DEMO=${INJECT_DEMO}
     networks:
       - traefik
     labels:
