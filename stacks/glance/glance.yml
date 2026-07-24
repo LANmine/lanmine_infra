@@ -2,10 +2,11 @@
 # Add widgets or links by editing this file and opening a Pull Request.
 # Full reference: https://github.com/glanceapp/glance/blob/main/docs/configuration.md
 
+server:
+  assets-path: /app/config/assets
+
 theme:
   custom-css-file: /assets/custom.css
-
-assets-path: /app/config/assets
 
 pages:
   - name: Home
