@@ -17,6 +17,10 @@ pages:
 
       - size: full
         widgets:
+          - type: iframe
+            source: https://countdown.tech.lanmine.no
+            height: 360
+
           - type: monitor
             title: LANmine services
             cache: 1m
