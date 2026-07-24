@@ -5,13 +5,15 @@ This repo runs our servers. **Change a file here → open a Pull Request → it 
 ## How it works
 
 ```mermaid
-flowchart LR
+flowchart TB
   A(["✏️ Edit a file<br/>in stacks/"]) --> B(["🔀 Open a<br/>Pull Request"])
   B --> C(["✅ Approve<br/>& merge"])
   C --> D(["🚀 Auto-deploy"])
   D --> E(["🌐 Live at<br/>name.tech.lanmine.no"])
-  classDef s fill:#1f6feb,stroke:#0b3,color:#fff
-  class A,B,C,D,E s
+  classDef step fill:#30363d,stroke:#8b949e,color:#e6edf3
+  classDef live fill:#238636,stroke:#2ea043,color:#ffffff
+  class A,B,C,D step
+  class E live
 ```
 
 ## Deploy a service
