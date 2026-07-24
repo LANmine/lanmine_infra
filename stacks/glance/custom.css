@@ -1,0 +1,14 @@
+/* Use the Ubuntu font across the dashboard. */
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
+
+:root {
+  --font: 'Ubuntu', sans-serif;
+}
+
+body,
+input,
+button,
+textarea,
+select {
+  font-family: 'Ubuntu', sans-serif;
+}
