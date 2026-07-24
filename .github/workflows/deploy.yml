@@ -1,0 +1,48 @@
+name: Deploy to server
+
+# Runs when a change to a stack lands on the main branch (i.e. after a PR is merged).
+# It works out which stacks changed and tells Portainer to deploy just those.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'stacks/**'
+
+# Prevent two deploys from running at the same time.
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # we need history to see what changed
+
+      - name: Work out which stacks changed
+        id: changed
+        run: |
+          set -euo pipefail
+          before='${{ github.event.before }}'
+          if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ] \
+             || ! git cat-file -e "${before}^{commit}" 2>/dev/null; then
+            # First push / unknown base: consider all stacks.
+            files=$(git ls-files 'stacks/*/docker-compose.yml')
+          else
+            files=$(git diff --name-only "$before" '${{ github.sha }}' -- 'stacks/*/docker-compose.yml')
+          fi
+          names=$(printf '%s\n' "$files" | awk -F/ 'NF>=3 {print $2}' | sort -u | tr '\n' ' ')
+          echo "Changed stacks: $names"
+          echo "names=$names" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy changed stacks to Portainer
+        if: steps.changed.outputs.names != ''
+        env:
+          PORTAINER_URL: https://portainer.ragnarok.eslg.no
+          PORTAINER_API_KEY: ${{ secrets.PORTAINER_API_KEY }}
+          PORTAINER_ENDPOINT_ID: '7'
+          REPO_URL: https://github.com/LANmine/lanmine_infra
+          GIT_REF: refs/heads/main
+        run: python3 scripts/deploy_stacks.py ${{ steps.changed.outputs.names }}
