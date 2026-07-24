@@ -32,13 +32,6 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
 
-  - name: librespeed
-    group: services
-    url: "https://speed.tech.lanmine.no"
-    interval: 60s
-    conditions:
-      - "[STATUS] == 200"
-
   - name: dashboard
     group: services
     url: "https://dash.tech.lanmine.no"
