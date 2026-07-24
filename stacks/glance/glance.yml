@@ -32,14 +32,18 @@ pages:
             title: LANmine services
             cache: 1m
             sites:
-              - title: IT-Tools
-                url: https://tools.tech.lanmine.no
+              - title: Dashboard
+                url: https://dash.tech.lanmine.no
               - title: Status page
                 url: https://status.tech.lanmine.no
-              - title: Example
-                url: https://example.tech.lanmine.no
+              - title: Countdown
+                url: https://countdown.tech.lanmine.no
+              - title: IT-Tools
+                url: https://tools.tech.lanmine.no
               - title: Snake
                 url: https://snake.tech.lanmine.no
+              - title: Example
+                url: https://example.tech.lanmine.no
 
       - size: small
         widgets:
