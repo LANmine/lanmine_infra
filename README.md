@@ -4,7 +4,7 @@ This repo runs our servers. **Change a file here → open a Pull Request → it 
 
 ## Live dashboard → [dash.tech.lanmine.no](https://dash.tech.lanmine.no)
 
-[![LANmine dashboard](docs/dashboard.png)](https://dash.tech.lanmine.no)
+[![LANmine dashboard](docs/dashboard-hvaler.png)](https://dash.tech.lanmine.no)
 
 ## How it works
 
