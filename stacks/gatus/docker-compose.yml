@@ -6,6 +6,7 @@ services:
   config-loader:
     image: curlimages/curl:latest
     restart: "no"
+    user: "0:0"          # write to the fresh named volume (owned by root)
     entrypoint:
       - /bin/sh
       - -c
