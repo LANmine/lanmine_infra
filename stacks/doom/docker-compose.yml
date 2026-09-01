@@ -1,0 +1,18 @@
+services:
+  # Browser DOOM (shareware) compiled to WebAssembly — runs client-side, keyboard only.
+  # Prebuilt public image, pinned by digest so deploys are reproducible.
+  # The image serves static files with `python3 -m http.server 8000`.
+  doom:
+    image: ghcr.io/trisnol/doom-wasm:main@sha256:175bfa92348516d9939258f7dd23c1709e54a80b6806ce0a09ee72eb39090d64
+    restart: unless-stopped
+    networks: [traefik]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.doom.rule=Host(`doom.tech.lanmine.no`)
+      - traefik.http.routers.doom.service=doom
+      - traefik.http.services.doom.loadbalancer.server.port=8000
+
+networks:
+  traefik:
+    external: true
