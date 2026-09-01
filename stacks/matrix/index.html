@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LANmine // matrix</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body { cursor: none; }
+  canvas { display: block; background: #000; }
+</style>
+</head>
+<body>
+<canvas id="m"></canvas>
+<script>
+(function () {
+  const canvas = document.getElementById('m');
+  const ctx = canvas.getContext('2d', { alpha: false });
+
+  // Portable glyph set — renders in any monospace font (no CJK dependency).
+  const glyphs = (
+    '0123456789' +
+    'ABCDEFGHJKLMNPQRSTUVWXYZ' +
+    'abcdefghijkmnopqrstuvwxyz' +
+    '@#$%&*+-=<>/\\|[]{}?!:;.^~'
+  ).split('');
+
+  let fontSize, columns, drops, speeds;
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    fontSize = Math.max(14, Math.round(canvas.width / 80));
+    columns = Math.ceil(canvas.width / fontSize);
+    drops = new Array(columns);
+    speeds = new Array(columns);
+    for (let i = 0; i < columns; i++) {
+      drops[i] = Math.random() * -canvas.height / fontSize;
+      speeds[i] = 0.6 + Math.random() * 0.9;
+    }
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  let last = 0;
+  const stepMs = 45; // cadence of the fall (independent of monitor refresh)
+
+  function draw(t) {
+    requestAnimationFrame(draw);
+    if (t - last < stepMs) return;
+    last = t;
+
+    // Translucent black over everything → fading green trails.
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.075)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.font = fontSize + "px 'Courier New', monospace";
+    ctx.textBaseline = 'top';
+
+    for (let i = 0; i < columns; i++) {
+      const x = i * fontSize;
+      const y = drops[i] * fontSize;
+      const ch = glyphs[(Math.random() * glyphs.length) | 0];
+
+      // Bright leading glyph (rare white sparkle), trail is the fade of the green.
+      ctx.fillStyle = Math.random() < 0.015 ? '#eafff0' : '#8dff9a';
+      ctx.fillText(ch, x, y);
+
+      drops[i] += speeds[i];
+      if (y > canvas.height && Math.random() > 0.975) {
+        drops[i] = Math.random() * -20;
+        speeds[i] = 0.6 + Math.random() * 0.9;
+      }
+    }
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>
