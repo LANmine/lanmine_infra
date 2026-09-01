@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>LANmine DOOM</title>
+  <link rel="stylesheet" href="https://v8.js-dos.com/latest/js-dos.css">
+  <script src="https://v8.js-dos.com/latest/js-dos.js"></script>
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; }
+    #dos { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="dos"></div>
+  <script>
+    // js-dos v8: run the DOOM shareware bundle (real DOS DOOM in the DOSBox emulator).
+    // Click the canvas to give it keyboard focus, then arrows + Ctrl to play.
+    Dos(document.getElementById("dos"), {
+      url: "https://v8.js-dos.com/bundles/doom.jsdos",
+      autoStart: true,
+      kiosk: true,
+    });
+  </script>
+</body>
+</html>

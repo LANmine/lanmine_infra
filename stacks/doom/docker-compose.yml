@@ -1,20 +1,40 @@
 services:
-  # Browser DOOM (shareware) compiled to WebAssembly — runs client-side, keyboard only.
-  # Prebuilt public image, pinned by digest so deploys are reproducible.
-  # The image serves static files with `python3 -m http.server 8000`.
-  # NB: the ghcr.io/trisnol build aborts with a WASM "alignment fault" at startup
-  # (black screen); this elliottking build of the same project reaches "game started"
-  # and runs the main loop, so use it instead.
+  # Browser DOOM via js-dos (real DOS binary in the DOSBox emulator) — keyboard only.
+  # Bind mounts are disabled, so an init container pulls index.html from the repo
+  # into a named volume, then nginx serves it. Edit index.html to change the page.
+  # (The js-dos runtime + the DOOM shareware bundle load from the js-dos CDN.)
+  content-loader:
+    image: curlimages/curl:latest
+    restart: "no"
+    user: "0:0"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/doom/index.html?ref=main' -o /usr/share/nginx/html/index.html
+    volumes:
+      - site:/usr/share/nginx/html
+
   doom:
-    image: elliottking/doom-wasm:0.1.1@sha256:e556cde9c244f7806a3ebb110c04ab124a974c1293524650d12b082d48303593
+    image: nginx:alpine
     restart: unless-stopped
-    networks: [traefik]
+    depends_on:
+      content-loader:
+        condition: service_completed_successfully
+    volumes:
+      - site:/usr/share/nginx/html
+    networks:
+      - traefik
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik
       - traefik.http.routers.doom.rule=Host(`doom.tech.lanmine.no`)
       - traefik.http.routers.doom.service=doom
-      - traefik.http.services.doom.loadbalancer.server.port=8000
+      - traefik.http.services.doom.loadbalancer.server.port=80
+
+volumes:
+  site:
 
 networks:
   traefik:
