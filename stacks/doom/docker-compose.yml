@@ -2,8 +2,11 @@ services:
   # Browser DOOM (shareware) compiled to WebAssembly — runs client-side, keyboard only.
   # Prebuilt public image, pinned by digest so deploys are reproducible.
   # The image serves static files with `python3 -m http.server 8000`.
+  # NB: the ghcr.io/trisnol build aborts with a WASM "alignment fault" at startup
+  # (black screen); this elliottking build of the same project reaches "game started"
+  # and runs the main loop, so use it instead.
   doom:
-    image: ghcr.io/trisnol/doom-wasm:main@sha256:175bfa92348516d9939258f7dd23c1709e54a80b6806ce0a09ee72eb39090d64
+    image: elliottking/doom-wasm:0.1.1@sha256:e556cde9c244f7806a3ebb110c04ab124a974c1293524650d12b082d48303593
     restart: unless-stopped
     networks: [traefik]
     labels:
