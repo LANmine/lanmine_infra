@@ -1,0 +1,40 @@
+services:
+  # Matrix digital rain — a static page for a spare screen / projector.
+  # Bind mounts are disabled, so an init container pulls index.html from the repo
+  # into a named volume, then nginx serves it. Edit index.html to change the effect.
+  content-loader:
+    image: curlimages/curl:latest
+    restart: "no"
+    user: "0:0"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/matrix/index.html?ref=main' -o /usr/share/nginx/html/index.html
+    volumes:
+      - site:/usr/share/nginx/html
+
+  matrix:
+    image: nginx:alpine
+    restart: unless-stopped
+    depends_on:
+      content-loader:
+        condition: service_completed_successfully
+    volumes:
+      - site:/usr/share/nginx/html
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.matrix.rule=Host(`matrix.tech.lanmine.no`)
+      - traefik.http.routers.matrix.service=matrix
+      - traefik.http.services.matrix.loadbalancer.server.port=80
+
+volumes:
+  site:
+
+networks:
+  traefik:
+    external: true
