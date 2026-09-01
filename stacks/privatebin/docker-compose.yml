@@ -1,0 +1,47 @@
+services:
+  # PrivateBin — zero-knowledge (client-side encrypted) pastebin.
+  # Two prep steps happen in the init container before PrivateBin starts:
+  #   1. Pull conf.php from the repo into the cfg volume (bind mounts are disabled here).
+  #   2. chown the data volume — PrivateBin runs as nobody(65534):82 and must write
+  #      pastes to /srv/data, but a fresh named volume is owned by root.
+  init:
+    image: curlimages/curl:latest
+    restart: "no"
+    user: "0:0"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/privatebin/conf.php?ref=main' -o /srv/cfg/conf.php
+        chown -R 65534:82 /srv/data
+        chmod 770 /srv/data
+    volumes:
+      - data:/srv/data
+      - cfg:/srv/cfg
+
+  privatebin:
+    image: privatebin/nginx-fpm-alpine@sha256:7be66288608f20e14333240c823f70996951ac5a2dc28ff8b5b7ba4074f05c84  # v2.0.6
+    restart: unless-stopped
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    volumes:
+      - data:/srv/data
+      - cfg:/srv/cfg
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.privatebin.rule=Host(`paste.tech.lanmine.no`)
+      - traefik.http.routers.privatebin.service=privatebin
+      - traefik.http.services.privatebin.loadbalancer.server.port=8080
+
+volumes:
+  data:
+  cfg:
+
+networks:
+  traefik:
+    external: true
