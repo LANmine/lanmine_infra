@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LANmine // Arcade</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<link rel="stylesheet" href="https://v8.js-dos.com/latest/js-dos.css">
+<script src="https://v8.js-dos.com/latest/js-dos.js"></script>
+<style>
+  :root{
+    --bg:#07080f; --fg:#d7ffe6; --dim:#5f7a72;
+    --neon:#39ff9d; --neon2:#2ad4ff; --hot:#ff3b6b;
+    --pixel:'Press Start 2P', ui-monospace, 'Courier New', monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg);font-family:var(--pixel)}
+  body{
+    background:
+      radial-gradient(1100px 600px at 50% -10%, #10233a 0%, transparent 60%),
+      radial-gradient(900px 500px at 50% 120%, #131033 0%, transparent 60%),
+      var(--bg);
+    overflow-x:hidden;
+  }
+
+  /* CRT overlay: scanlines + vignette + flicker */
+  .crt::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:50;
+    background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.28) 2px 3px);
+    mix-blend-mode:multiply;
+  }
+  .crt::after{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:51;
+    background:radial-gradient(120% 120% at 50% 50%, transparent 55%, rgba(0,0,0,.55) 100%);
+    animation:flicker 6s infinite steps(60);
+  }
+  @keyframes flicker{0%,100%{opacity:.9}48%{opacity:.86}50%{opacity:.98}52%{opacity:.88}}
+
+  header{ text-align:center; padding:56px 16px 26px; }
+  h1{
+    font-size:clamp(20px,5vw,44px); margin:0; letter-spacing:.04em; line-height:1.3;
+    color:#eafff2;
+    text-shadow:0 0 6px var(--neon),0 0 20px rgba(57,255,157,.6),0 0 44px rgba(42,212,255,.35);
+  }
+  h1 .b{color:var(--neon2); text-shadow:0 0 6px var(--neon2),0 0 22px rgba(42,212,255,.6)}
+  .coin{ margin-top:22px; font-size:clamp(9px,1.6vw,12px); color:var(--neon);
+    text-shadow:0 0 8px rgba(57,255,157,.8); animation:blink 1.1s steps(2) infinite; }
+  @keyframes blink{50%{opacity:.15}}
+
+  .grid{
+    display:grid; gap:22px; max-width:1080px; margin:10px auto 70px; padding:0 20px;
+    grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+  }
+  .cab{
+    position:relative; cursor:pointer; text-align:left; color:inherit;
+    background:linear-gradient(180deg,#0d1220,#0a0d18);
+    border:1px solid #1d2b3a; border-radius:12px; overflow:hidden;
+    transition:transform .12s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .cab:hover,.cab:focus-visible{
+    transform:translateY(-4px); outline:none;
+    border-color:var(--accent);
+    box-shadow:0 0 0 1px var(--accent), 0 0 26px -6px var(--accent), 0 18px 40px -20px #000;
+  }
+  .marquee{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:9px 12px; font-size:8px; letter-spacing:.12em; color:#0a0d18;
+    background:var(--accent); text-transform:uppercase;
+  }
+  .marquee .yr{opacity:.75}
+  .screen{
+    height:150px; display:flex; align-items:center; justify-content:center; padding:14px; text-align:center;
+    background:
+      repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 3px, rgba(0,0,0,.25) 3px 4px),
+      radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--accent) 30%, #0a0d18), #070a12 70%);
+  }
+  .screen .name{
+    font-size:clamp(12px,2.4vw,17px); color:#fff; line-height:1.5;
+    text-shadow:0 0 10px var(--accent),0 0 26px color-mix(in srgb,var(--accent) 60%, transparent);
+  }
+  .foot{ display:flex; justify-content:space-between; align-items:center; padding:12px; font-size:8px; color:var(--dim); }
+  .go{ color:var(--accent); text-shadow:0 0 10px color-mix(in srgb,var(--accent) 70%, transparent); }
+
+  /* Player view */
+  #player{ position:fixed; inset:0; z-index:60; background:#000; display:none; }
+  #dos{ width:100%; height:100%; }
+  #back{
+    position:fixed; top:14px; left:14px; z-index:62; cursor:pointer;
+    font-family:var(--pixel); font-size:10px; letter-spacing:.1em;
+    color:#07080f; background:var(--neon); border:none; border-radius:8px; padding:10px 14px;
+    box-shadow:0 0 18px -2px var(--neon);
+  }
+  #back:hover{ background:#eafff2 }
+  footer{ text-align:center; color:var(--dim); font-size:8px; padding:0 0 40px; letter-spacing:.1em; }
+  a{color:var(--neon2)}
+</style>
+</head>
+<body class="crt">
+  <div id="menu">
+    <header>
+      <h1>LANMINE <span class="b">ARCADE</span></h1>
+      <div class="coin">▶ INSERT COIN — SELECT A GAME</div>
+    </header>
+    <main class="grid" id="grid"></main>
+    <footer>POWERED BY JS-DOS · ADD A GAME VIA PULL REQUEST</footer>
+  </div>
+
+  <div id="player">
+    <button id="back">◄ ARCADE</button>
+    <div id="dos"></div>
+  </div>
+
+<script>
+  const GAMES = [
+    { title:'Commander Keen', name:'Marooned on Mars', tag:'Platformer', year:'1990', accent:'#39ff9d', url:'games/keen1.jsdos' },
+    { title:'Digger',         name:'Digger',           tag:'Arcade',     year:'1983', accent:'#f7c948', url:'games/digger.jsdos' },
+    { title:'DOOM',           name:'Knee-Deep in the Dead', tag:'FPS',   year:'1993', accent:'#ff3b6b', href:'https://doom.tech.lanmine.no' },
+  ];
+
+  const grid = document.getElementById('grid');
+  for (const g of GAMES) {
+    const el = document.createElement(g.href ? 'a' : 'button');
+    el.className = 'cab';
+    el.style.setProperty('--accent', g.accent);
+    if (g.href) { el.href = g.href; }
+    el.innerHTML =
+      '<div class="marquee"><span>' + g.tag + '</span><span class="yr">' + g.year + '</span></div>' +
+      '<div class="screen"><div class="name">' + g.title + '</div></div>' +
+      '<div class="foot"><span>' + g.name + '</span><span class="go">' + (g.href ? 'LAUNCH ↗' : 'PLAY ►') + '</span></div>';
+    if (!g.href) el.addEventListener('click', () => play(g));
+    grid.appendChild(el);
+  }
+
+  function play(g) {
+    document.getElementById('menu').style.display = 'none';
+    document.getElementById('player').style.display = 'block';
+    Dos(document.getElementById('dos'), { url: g.url, autoStart: true, kiosk: true });
+  }
+  // Simplest reliable teardown: reload back to the attract grid.
+  document.getElementById('back').addEventListener('click', () => location.reload());
+</script>
+</body>
+</html>
