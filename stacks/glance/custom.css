@@ -20,3 +20,22 @@ select {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
+/* Perspective grid backdrop across the whole dashboard — same motif as the countdown,
+   so the embedded countdown no longer stands out against a flat background. Sits behind
+   all content (z-index:-1); widgets keep their own card backgrounds on top. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(238, 152, 43, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(70, 92, 105, 0.12) 1px, transparent 1px);
+  background-size: 44px 44px;
+  transform: perspective(500px) rotateX(60deg);
+  animation: dash-grid-drift 12s linear infinite;
+}
+@keyframes dash-grid-drift { from { background-position: 0 0; } to { background-position: 0 44px; } }
+@media (prefers-reduced-motion: reduce) { body::before { animation: none; } }
