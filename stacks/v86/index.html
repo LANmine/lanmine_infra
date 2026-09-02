@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>v86 · LANmine</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  #screen_container { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #screen_container > div { white-space: pre; font: 14px/14px monospace; color: #33ff66; }
+  #screen_container > canvas { image-rendering: pixelated; max-width: 100vw; max-height: 100vh; }
+  #boot { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 2;
+    color: #9aa3a8; font-family: ui-monospace, monospace; font-size: 13px; letter-spacing: .15em; }
+</style>
+</head>
+<body>
+  <div id="boot">booting…</div>
+  <div id="screen_container">
+    <div></div>
+    <canvas></canvas>
+  </div>
+<script src="https://cdn.jsdelivr.net/npm/v86/build/libv86.js"></script>
+<script>
+  var V = window.V86 || window.V86Starter;
+  var emu = new V({
+    screen_container: document.getElementById("screen_container"),
+    bios: { url: "https://cdn.jsdelivr.net/npm/v86/bios/seabios.bin" },
+    vga_bios: { url: "https://cdn.jsdelivr.net/npm/v86/bios/vgabios.bin" },
+    wasm_path: "https://cdn.jsdelivr.net/npm/v86/build/v86.wasm",
+    memory_size: 64 * 1024 * 1024,
+    vga_memory_size: 8 * 1024 * 1024,
+    fda: { url: "freedos722.img" },
+    boot_order: 0x321,
+    autostart: true,
+  });
+  emu.add_listener("emulator-ready", function () {
+    var b = document.getElementById("boot"); if (b) b.remove();
+  });
+</script>
+</body>
+</html>

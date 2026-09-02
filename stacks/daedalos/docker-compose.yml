@@ -1,0 +1,18 @@
+services:
+  # daedalOS — a full desktop environment (windows, file manager, editor, Webamp, etc.)
+  # that runs in the browser. Prebuilt image, pinned by digest.
+  daedalos:
+    image: lscr.io/linuxserver-labs/daedalos@sha256:9d145bc1d74322ce422abb83292d54e1e850209fea9bd0598dee469853b1164f
+    restart: unless-stopped
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.daedalos.rule=Host(`daedalos.tech.lanmine.no`)
+      - traefik.http.routers.daedalos.service=daedalos
+      - traefik.http.services.daedalos.loadbalancer.server.port=3000
+
+networks:
+  traefik:
+    external: true
