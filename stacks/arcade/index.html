@@ -92,6 +92,12 @@
     box-shadow:0 0 18px -2px var(--neon);
   }
   #back:hover{ background:#eafff2 }
+  #hint{
+    position:fixed; bottom:14px; left:50%; transform:translateX(-50%); z-index:62;
+    font-family:var(--pixel); font-size:8px; letter-spacing:.05em; line-height:1.7; text-align:center;
+    color:var(--neon2); background:rgba(7,8,15,.85); border:1px solid #1d2b3a;
+    border-radius:8px; padding:8px 12px; max-width:92vw;
+  }
   footer{ text-align:center; color:var(--dim); font-size:8px; padding:0 0 40px; letter-spacing:.1em; }
   a{color:var(--neon2)}
 </style>
@@ -109,6 +115,7 @@
   <div id="player">
     <button id="back">◄ ARCADE</button>
     <div id="dos"></div>
+    <div id="hint">CTRL · ALT · ESC need fullscreen — tap ⛶ in the game bar, then click the game</div>
   </div>
 
 <script>
@@ -135,7 +142,9 @@
   function play(g) {
     document.getElementById('menu').style.display = 'none';
     document.getElementById('player').style.display = 'block';
-    Dos(document.getElementById('dos'), { url: g.url, autoStart: true, kiosk: true });
+    // No kiosk: keep the js-dos toolbar so its fullscreen button is available.
+    // Ctrl/Alt/Esc only reach the game under js-dos fullscreen (Keyboard Lock API).
+    Dos(document.getElementById('dos'), { url: g.url, autoStart: true });
   }
   // Simplest reliable teardown: reload back to the attract grid.
   document.getElementById('back').addEventListener('click', () => location.reload());
