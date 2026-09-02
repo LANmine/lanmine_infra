@@ -1,0 +1,44 @@
+services:
+  # Butterchurn — Milkdrop-style audio visualizer (WebGL), for a projector/spare screen.
+  # Reacts to the browser microphone. Bind mounts are disabled, so an init container
+  # pulls index.html from the repo and the butterchurn libs from a CDN into a named
+  # volume; nginx then serves everything locally (no dependency on the CDN at play time).
+  content-loader:
+    image: curlimages/curl:latest
+    restart: "no"
+    user: "0:0"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        mkdir -p /usr/share/nginx/html
+        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/viz/index.html?ref=main' -o /usr/share/nginx/html/index.html
+        curl -sSf 'https://cdn.jsdelivr.net/npm/butterchurn@2.6.7/lib/butterchurn.min.js' -o /usr/share/nginx/html/butterchurn.min.js
+        curl -sSf 'https://cdn.jsdelivr.net/npm/butterchurn-presets@2.4.7/lib/butterchurnPresets.min.js' -o /usr/share/nginx/html/butterchurnPresets.min.js
+    volumes:
+      - site:/usr/share/nginx/html
+
+  viz:
+    image: nginx:alpine
+    restart: unless-stopped
+    depends_on:
+      content-loader:
+        condition: service_completed_successfully
+    volumes:
+      - site:/usr/share/nginx/html
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.viz.rule=Host(`viz.tech.lanmine.no`)
+      - traefik.http.routers.viz.service=viz
+      - traefik.http.services.viz.loadbalancer.server.port=80
+
+volumes:
+  site:
+
+networks:
+  traefik:
+    external: true
