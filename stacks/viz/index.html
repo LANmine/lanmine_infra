@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LANmine // Butterchurn</title>
+<style>
+  :root{ --neon:#39ff9d; --neon2:#2ad4ff; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;color:#eafff2;
+    font-family:ui-monospace,"Courier New",monospace}
+  #viz{display:block;width:100vw;height:100vh;background:#000}
+  #gate{
+    position:fixed; inset:0; z-index:10; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:22px; text-align:center; padding:20px;
+    background:radial-gradient(1000px 600px at 50% 40%,#0c1a2c 0%,#04050a 70%);
+  }
+  #gate h1{
+    margin:0; font-size:clamp(22px,6vw,52px); letter-spacing:.06em; font-weight:800;
+    background:linear-gradient(90deg,var(--neon),var(--neon2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 40px rgba(57,255,157,.25);
+  }
+  #gate p{margin:0;color:#7fa; opacity:.8; font-size:clamp(11px,2vw,14px); letter-spacing:.04em; max-width:34ch; line-height:1.7}
+  #start{
+    cursor:pointer; font:inherit; font-size:clamp(13px,2.4vw,16px); letter-spacing:.14em;
+    color:#04050a; background:var(--neon); border:none; border-radius:10px; padding:16px 30px;
+    box-shadow:0 0 30px -4px var(--neon); text-transform:uppercase;
+  }
+  #start:hover{background:#eafff2}
+  #keys{color:#4a6b7a; font-size:10px; letter-spacing:.1em}
+  #toast{
+    position:fixed; left:16px; bottom:14px; z-index:9; pointer-events:none;
+    color:var(--neon2); font-size:11px; letter-spacing:.08em; text-shadow:0 0 10px rgba(42,212,255,.6);
+    background:rgba(4,5,10,.5); padding:6px 10px; border-radius:6px;
+    opacity:0; transition:opacity .5s ease;
+  }
+</style>
+</head>
+<body>
+  <canvas id="viz"></canvas>
+  <div id="toast"></div>
+  <div id="gate">
+    <h1>BUTTERCHURN</h1>
+    <p>Milkdrop-style audio visuals. Plays best with music in the room — it reacts to your microphone.</p>
+    <button id="start">▶ Start</button>
+    <div id="keys">SPACE next preset · F fullscreen · reacts to mic (or runs on its own if denied)</div>
+  </div>
+
+<script src="./butterchurn.min.js"></script>
+<script src="./butterchurnPresets.min.js"></script>
+<script>
+(function(){
+  const canvas = document.getElementById('viz');
+  const gate = document.getElementById('gate');
+  const toast = document.getElementById('toast');
+  const B = (window.butterchurn && (window.butterchurn.default || window.butterchurn));
+  const P = (window.butterchurnPresets && (window.butterchurnPresets.default || window.butterchurnPresets));
+
+  let visualizer, presetKeys = [], idx = 0, cycleTimer, toastTimer;
+
+  function showToast(name){
+    toast.textContent = '▚ ' + name;
+    toast.style.opacity = '1';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>{ toast.style.opacity = '0'; }, 3500);
+  }
+  function sizeTo(){
+    const w = window.innerWidth, h = window.innerHeight;
+    canvas.width = w; canvas.height = h;
+    if (visualizer) visualizer.setRendererSize(w, h);
+  }
+  function loadPreset(i, blend){
+    idx = (i + presetKeys.length) % presetKeys.length;
+    const name = presetKeys[idx];
+    visualizer.loadPreset(P.getPresets()[name], blend === undefined ? 2.7 : blend);
+    showToast(name);
+  }
+  function nextPreset(){ loadPreset(idx + 1, 2.7); }
+
+  async function start(){
+    gate.style.display = 'none';
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioCtx();
+    visualizer = B.createVisualizer(audioCtx, canvas, {
+      width: window.innerWidth, height: window.innerHeight,
+      pixelRatio: window.devicePixelRatio || 1, textureRatio: 1,
+    });
+    sizeTo();
+
+    // Audio source: microphone (reacts to the room). If denied, run without audio.
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      const src = audioCtx.createMediaStreamSource(stream);
+      visualizer.connectAudio(src);
+    } catch (e) {
+      console.warn('No microphone — running without audio input.', e);
+    }
+
+    const presets = P.getPresets();
+    presetKeys = Object.keys(presets);
+    // start on a random preset, then auto-cycle
+    loadPreset(Math.floor(Math.random() * presetKeys.length), 0);
+    cycleTimer = setInterval(() => loadPreset(Math.floor(Math.random() * presetKeys.length), 5.7), 16000);
+
+    (function render(){ requestAnimationFrame(render); visualizer.render(); })();
+  }
+
+  document.getElementById('start').addEventListener('click', () => {
+    start();
+    if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
+  });
+  window.addEventListener('resize', sizeTo);
+  window.addEventListener('keydown', (e) => {
+    if (!visualizer) return;
+    if (e.code === 'Space') { e.preventDefault(); nextPreset(); }
+    if (e.key === 'f' || e.key === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(()=>{});
+    }
+  });
+})();
+</script>
+</body>
+</html>
