@@ -1,0 +1,44 @@
+services:
+  # Retro arcade portal (js-dos / DOSBox). Bind mounts are disabled, so an init
+  # container pulls the page and the game bundles from the repo into a named volume,
+  # then nginx serves them. Add a game = add a .jsdos under games/, list it in
+  # index.html, open a PR.
+  content-loader:
+    image: curlimages/curl:latest
+    restart: "no"
+    user: "0:0"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        mkdir -p /usr/share/nginx/html/games
+        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/arcade/index.html?ref=main' -o /usr/share/nginx/html/index.html
+        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/arcade/games/keen1.jsdos?ref=main' -o /usr/share/nginx/html/games/keen1.jsdos
+        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/arcade/games/digger.jsdos?ref=main' -o /usr/share/nginx/html/games/digger.jsdos
+    volumes:
+      - site:/usr/share/nginx/html
+
+  arcade:
+    image: nginx:alpine
+    restart: unless-stopped
+    depends_on:
+      content-loader:
+        condition: service_completed_successfully
+    volumes:
+      - site:/usr/share/nginx/html
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.arcade.rule=Host(`arcade.tech.lanmine.no`)
+      - traefik.http.routers.arcade.service=arcade
+      - traefik.http.services.arcade.loadbalancer.server.port=80
+
+volumes:
+  site:
+
+networks:
+  traefik:
+    external: true
