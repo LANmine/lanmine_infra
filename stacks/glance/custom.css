@@ -27,17 +27,16 @@ select {
 body::before {
   content: "";
   position: fixed;
-  inset: -50%;
+  inset: 0;
   z-index: -1;
   pointer-events: none;
   background-image:
     linear-gradient(rgba(238, 152, 43, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(70, 92, 105, 0.12) 1px, transparent 1px);
   background-size: 44px 44px;
-  transform: perspective(500px) rotateX(60deg);
-  animation: dash-grid-drift 12s linear infinite;
+  animation: dash-grid-drift 14s linear infinite;
 }
-@keyframes dash-grid-drift { from { background-position: 0 0; } to { background-position: 0 44px; } }
+@keyframes dash-grid-drift { from { background-position: 0 0; } to { background-position: 44px 44px; } }
 @media (prefers-reduced-motion: reduce) { body::before { animation: none; } }
 
 /* Native countdown (html widget) — transparent container so the page grid shows through. */
