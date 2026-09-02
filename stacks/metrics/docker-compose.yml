@@ -1,0 +1,43 @@
+services:
+  # Read-only metrics sidecar for the dashboard. Holds the Portainer token
+  # (server-side only, injected as a secret), polls the Docker API, and serves a
+  # sanitized, tokenless JSON summary on the internal network for Glance to render.
+  # No Traefik labels => never publicly reachable. The token never leaves this container.
+  content-loader:
+    image: curlimages/curl:latest
+    restart: "no"
+    user: "0:0"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        mkdir -p /app
+        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/metrics/metrics.py?ref=main' -o /app/metrics.py
+    volumes:
+      - app:/app
+
+  metrics:
+    image: python:3.12-alpine
+    restart: unless-stopped
+    depends_on:
+      content-loader:
+        condition: service_completed_successfully
+    command: ["python", "/app/metrics.py"]
+    environment:
+      - PORTAINER_RO_TOKEN=${PORTAINER_RO_TOKEN}
+      - PORTAINER_URL=https://portainer.ragnarok.eslg.no
+      - PORTAINER_ENDPOINT_ID=7
+    volumes:
+      - app:/app
+    networks:
+      traefik:
+        aliases:
+          - ragnarok-metrics
+
+volumes:
+  app:
+
+networks:
+  traefik:
+    external: true
