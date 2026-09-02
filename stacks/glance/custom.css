@@ -1,8 +1,8 @@
-/* Use the Ubuntu font across the dashboard. */
-@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
+/* lanmine.no brand typography: Poppins for UI/body, Alegreya Sans (bold, uppercase) for titles. */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Alegreya+Sans:wght@700;800&display=swap');
 
 :root {
-  --font: 'Ubuntu', sans-serif;
+  --font: 'Poppins', sans-serif;
 }
 
 body,
@@ -10,5 +10,13 @@ input,
 button,
 textarea,
 select {
-  font-family: 'Ubuntu', sans-serif;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Section / widget titles → Alegreya Sans, heavy, uppercase (lanmine.no display style). */
+.widget-header {
+  font-family: 'Alegreya Sans', 'Poppins', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
