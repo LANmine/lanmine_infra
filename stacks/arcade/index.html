@@ -15,12 +15,16 @@
     --pixel:'Press Start 2P', ui-monospace, 'Courier New', monospace;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg);font-family:var(--pixel)}
+  html{background:var(--bg)}
+  html,body{margin:0;min-height:100vh;background-color:var(--bg);color:var(--fg);font-family:var(--pixel)}
   body{
+    min-height:100vh;
     background:
       radial-gradient(1100px 600px at 50% -10%, #10233a 0%, transparent 60%),
       radial-gradient(900px 500px at 50% 120%, #131033 0%, transparent 60%),
       var(--bg);
+    background-attachment:fixed;
+    background-repeat:no-repeat;
     overflow-x:hidden;
   }
 
