@@ -19,18 +19,15 @@
     <div></div>
     <canvas></canvas>
   </div>
-<script src="https://cdn.jsdelivr.net/npm/v86/build/libv86.js"></script>
+<script src="libv86.js"></script>
 <script>
-  var V = window.V86 || window.V86Starter;
-  var emu = new V({
+  // Self-hosted, matched v86 runtime + FreeDOS image (all same-origin).
+  var emu = new V86({
     screen_container: document.getElementById("screen_container"),
-    bios: { url: "https://cdn.jsdelivr.net/npm/v86/bios/seabios.bin" },
-    vga_bios: { url: "https://cdn.jsdelivr.net/npm/v86/bios/vgabios.bin" },
-    wasm_path: "https://cdn.jsdelivr.net/npm/v86/build/v86.wasm",
-    memory_size: 64 * 1024 * 1024,
-    vga_memory_size: 8 * 1024 * 1024,
+    bios: { url: "seabios.bin" },
+    vga_bios: { url: "vgabios.bin" },
+    wasm_path: "v86.wasm",
     fda: { url: "freedos722.img" },
-    boot_order: 0x321,
     autostart: true,
   });
   emu.add_listener("emulator-ready", function () {
