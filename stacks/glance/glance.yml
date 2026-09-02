@@ -6,6 +6,12 @@ server:
   assets-path: /app/config/assets
 
 theme:
+  # lanmine.no brand: cool-dark base, single orange accent (#EE982B).
+  background-color: 205 12 12
+  primary-color: 34 85 55
+  positive-color: 130 42 52
+  negative-color: 0 70 60
+  contrast-multiplier: 1.15
   custom-css-file: /assets/custom.css
 
 pages:
