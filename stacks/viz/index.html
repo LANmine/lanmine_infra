@@ -12,7 +12,7 @@
   #viz{display:block;width:100vw;height:100vh;background:#000}
   #gate{
     position:fixed; inset:0; z-index:10; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:22px; text-align:center; padding:20px;
+    align-items:center; justify-content:center; gap:20px; text-align:center; padding:20px;
     background:radial-gradient(1000px 600px at 50% 40%,#0c1a2c 0%,#04050a 70%);
   }
   #gate h1{
@@ -21,19 +21,21 @@
     -webkit-background-clip:text; background-clip:text; color:transparent;
     text-shadow:0 0 40px rgba(57,255,157,.25);
   }
-  #gate p{margin:0;color:#7fa; opacity:.8; font-size:clamp(11px,2vw,14px); letter-spacing:.04em; max-width:34ch; line-height:1.7}
-  #start{
-    cursor:pointer; font:inherit; font-size:clamp(13px,2.4vw,16px); letter-spacing:.14em;
-    color:#04050a; background:var(--neon); border:none; border-radius:10px; padding:16px 30px;
-    box-shadow:0 0 30px -4px var(--neon); text-transform:uppercase;
+  #gate p{margin:0;color:#7fa; opacity:.8; font-size:clamp(11px,2vw,14px); letter-spacing:.04em; max-width:40ch; line-height:1.7}
+  .btns{display:flex; gap:14px; flex-wrap:wrap; justify-content:center}
+  button.go{
+    cursor:pointer; font:inherit; font-size:clamp(13px,2.2vw,15px); letter-spacing:.1em;
+    color:#04050a; background:var(--neon); border:none; border-radius:10px; padding:15px 24px;
+    box-shadow:0 0 30px -6px var(--neon); text-transform:uppercase;
   }
-  #start:hover{background:#eafff2}
+  button.go.alt{ background:var(--neon2); box-shadow:0 0 30px -6px var(--neon2); }
+  button.go:hover{ filter:brightness(1.12) }
   #keys{color:#4a6b7a; font-size:10px; letter-spacing:.1em}
+  #err{color:#e5534b; font-size:12px; min-height:1.2em}
   #toast{
     position:fixed; left:16px; bottom:14px; z-index:9; pointer-events:none;
     color:var(--neon2); font-size:11px; letter-spacing:.08em; text-shadow:0 0 10px rgba(42,212,255,.6);
-    background:rgba(4,5,10,.5); padding:6px 10px; border-radius:6px;
-    opacity:0; transition:opacity .5s ease;
+    background:rgba(4,5,10,.5); padding:6px 10px; border-radius:6px; opacity:0; transition:opacity .5s ease;
   }
 </style>
 </head>
@@ -42,9 +44,13 @@
   <div id="toast"></div>
   <div id="gate">
     <h1>BUTTERCHURN</h1>
-    <p>Milkdrop-style audio visuals. Plays best with music in the room — it reacts to your microphone.</p>
-    <button id="start">▶ Start</button>
-    <div id="keys">SPACE next preset · F fullscreen · reacts to mic (or runs on its own if denied)</div>
+    <p>Milkdrop-style audio visuals. Pick a sound source:</p>
+    <div class="btns">
+      <button id="desktop" class="go">🎵 Desktop / tab audio</button>
+      <button id="mic" class="go alt">🎤 Microphone</button>
+    </div>
+    <div id="err"></div>
+    <div id="keys">Desktop: pick a Tab or “Entire Screen” and enable “Share audio”. · SPACE next preset · F fullscreen</div>
   </div>
 
 <script src="./butterchurn.min.js"></script>
@@ -53,70 +59,65 @@
 (function(){
   const canvas = document.getElementById('viz');
   const gate = document.getElementById('gate');
+  const errEl = document.getElementById('err');
   const toast = document.getElementById('toast');
   const B = (window.butterchurn && (window.butterchurn.default || window.butterchurn));
   const P = (window.butterchurnPresets && (window.butterchurnPresets.default || window.butterchurnPresets));
-
   let visualizer, presetKeys = [], idx = 0, cycleTimer, toastTimer;
 
   function showToast(name){
-    toast.textContent = '▚ ' + name;
-    toast.style.opacity = '1';
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(()=>{ toast.style.opacity = '0'; }, 3500);
+    toast.textContent = '▚ ' + name; toast.style.opacity = '1';
+    clearTimeout(toastTimer); toastTimer = setTimeout(()=>toast.style.opacity='0', 3500);
   }
   function sizeTo(){
-    const w = window.innerWidth, h = window.innerHeight;
-    canvas.width = w; canvas.height = h;
-    if (visualizer) visualizer.setRendererSize(w, h);
+    canvas.width = innerWidth; canvas.height = innerHeight;
+    if (visualizer) visualizer.setRendererSize(innerWidth, innerHeight);
   }
   function loadPreset(i, blend){
     idx = (i + presetKeys.length) % presetKeys.length;
-    const name = presetKeys[idx];
-    visualizer.loadPreset(P.getPresets()[name], blend === undefined ? 2.7 : blend);
-    showToast(name);
+    visualizer.loadPreset(P.getPresets()[presetKeys[idx]], blend === undefined ? 2.7 : blend);
+    showToast(presetKeys[idx]);
   }
-  function nextPreset(){ loadPreset(idx + 1, 2.7); }
+  function goFullscreen(){ if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{}); }
 
-  async function start(){
-    gate.style.display = 'none';
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    const audioCtx = new AudioCtx();
-    visualizer = B.createVisualizer(audioCtx, canvas, {
-      width: window.innerWidth, height: window.innerHeight,
-      pixelRatio: window.devicePixelRatio || 1, textureRatio: 1,
+  // --- audio sources ---
+  function micStream(){ return navigator.mediaDevices.getUserMedia({ audio: true, video: false }); }
+  async function desktopStream(){
+    const s = await navigator.mediaDevices.getDisplayMedia({
+      video: true, audio: true,   // video is required to get a picker; we drop it below
+      systemAudio: 'include', selfBrowserSurface: 'include',
     });
+    s.getVideoTracks().forEach(t => t.stop());          // we only want the audio
+    if (s.getAudioTracks().length === 0)
+      throw new Error('No audio was shared — pick a Tab or "Entire Screen" and tick "Share audio".');
+    return s;
+  }
+
+  async function start(getStream){
+    errEl.textContent = '';
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let stream;
+    try { stream = await getStream(); }
+    catch(e){ errEl.textContent = e.message || 'Could not get audio.'; return; }   // stay on gate, show why
+    gate.style.display = 'none';
+    goFullscreen();
+    visualizer = B.createVisualizer(audioCtx, canvas, { width: innerWidth, height: innerHeight, pixelRatio: devicePixelRatio||1, textureRatio: 1 });
     sizeTo();
-
-    // Audio source: microphone (reacts to the room). If denied, run without audio.
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-      const src = audioCtx.createMediaStreamSource(stream);
-      visualizer.connectAudio(src);
-    } catch (e) {
-      console.warn('No microphone — running without audio input.', e);
-    }
-
-    const presets = P.getPresets();
-    presetKeys = Object.keys(presets);
-    // start on a random preset, then auto-cycle
-    loadPreset(Math.floor(Math.random() * presetKeys.length), 0);
-    cycleTimer = setInterval(() => loadPreset(Math.floor(Math.random() * presetKeys.length), 5.7), 16000);
-
+    try { visualizer.connectAudio(audioCtx.createMediaStreamSource(stream)); }
+    catch(e){ console.warn('connectAudio failed; presets will still drift', e); }
+    presetKeys = Object.keys(P.getPresets());
+    loadPreset(Math.floor(Math.random()*presetKeys.length), 0);
+    cycleTimer = setInterval(()=>loadPreset(Math.floor(Math.random()*presetKeys.length), 5.7), 16000);
     (function render(){ requestAnimationFrame(render); visualizer.render(); })();
   }
 
-  document.getElementById('start').addEventListener('click', () => {
-    start();
-    if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
-  });
-  window.addEventListener('resize', sizeTo);
-  window.addEventListener('keydown', (e) => {
+  document.getElementById('desktop').addEventListener('click', ()=>start(desktopStream));
+  document.getElementById('mic').addEventListener('click', ()=>start(micStream));
+  addEventListener('resize', sizeTo);
+  addEventListener('keydown', e=>{
     if (!visualizer) return;
-    if (e.code === 'Space') { e.preventDefault(); nextPreset(); }
-    if (e.key === 'f' || e.key === 'F') {
-      if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(()=>{});
-    }
+    if (e.code === 'Space'){ e.preventDefault(); loadPreset(idx+1, 2.7); }
+    if (e.key === 'f' || e.key === 'F'){ if (document.fullscreenElement) document.exitFullscreen(); else goFullscreen(); }
   });
 })();
 </script>
