@@ -67,6 +67,12 @@ pages:
                 url: https://snake.tech.lanmine.no
               - title: DOOM
                 url: https://doom.tech.lanmine.no
+              - title: Arcade
+                url: https://arcade.tech.lanmine.no
+              - title: Matrix
+                url: https://matrix.tech.lanmine.no
+              - title: Butterchurn
+                url: https://viz.tech.lanmine.no
               - title: Example
                 url: https://example.tech.lanmine.no
 
