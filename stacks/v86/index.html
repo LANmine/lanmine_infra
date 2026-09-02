@@ -27,7 +27,9 @@
     bios: { url: "seabios.bin" },
     vga_bios: { url: "vgabios.bin" },
     wasm_path: "v86.wasm",
-    fda: { url: "freedos722.img" },
+    cdrom: { url: "linux.iso" },
+    memory_size: 128 * 1024 * 1024,
+    vga_memory_size: 8 * 1024 * 1024,
     autostart: true,
   });
   emu.add_listener("emulator-ready", function () {

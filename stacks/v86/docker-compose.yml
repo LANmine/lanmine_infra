@@ -12,12 +12,13 @@ services:
       - |
         set -e
         mkdir -p /usr/share/nginx/html
+        rm -f /usr/share/nginx/html/freedos722.img
         curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/v86/index.html?ref=main' -o /usr/share/nginx/html/index.html
         curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/v86/libv86.js?ref=main' -o /usr/share/nginx/html/libv86.js
         curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/v86/v86.wasm?ref=main' -o /usr/share/nginx/html/v86.wasm
         curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/v86/seabios.bin?ref=main' -o /usr/share/nginx/html/seabios.bin
         curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/v86/vgabios.bin?ref=main' -o /usr/share/nginx/html/vgabios.bin
-        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/v86/freedos722.img?ref=main' -o /usr/share/nginx/html/freedos722.img
+        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/v86/linux.iso?ref=main' -o /usr/share/nginx/html/linux.iso
     volumes:
       - site:/usr/share/nginx/html
 
