@@ -3,54 +3,76 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LANmine // Butterchurn</title>
+<title>butterchurn</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
 <style>
-  :root{ --neon:#39ff9d; --neon2:#2ad4ff; }
+  :root{
+    --paper:#e6e6e2; --ink:#121212; --grey:#6f6f6a; --line:rgba(18,18,18,.16);
+    --mono:'Space Mono', ui-monospace, "Courier New", monospace;
+  }
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:#000;overflow:hidden;color:#eafff2;
-    font-family:ui-monospace,"Courier New",monospace}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden}
   #viz{display:block;width:100vw;height:100vh;background:#000}
+
   #gate{
-    position:fixed; inset:0; z-index:10; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:20px; text-align:center; padding:20px;
-    background:radial-gradient(1000px 600px at 50% 40%,#0c1a2c 0%,#04050a 70%);
+    position:fixed; inset:0; z-index:10; background:var(--paper); color:var(--ink);
+    font-family:var(--mono); font-weight:400;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:30px; text-align:center; padding:28px;
+    opacity:1; transition:opacity .3s ease;
+    animation:gate-in .3s ease both;
   }
-  #gate h1{
-    margin:0; font-size:clamp(22px,6vw,52px); letter-spacing:.06em; font-weight:800;
-    background:linear-gradient(90deg,var(--neon),var(--neon2));
-    -webkit-background-clip:text; background-clip:text; color:transparent;
-    text-shadow:0 0 40px rgba(57,255,157,.25);
+  @keyframes gate-in{from{opacity:0}to{opacity:1}}
+  @media (prefers-reduced-motion:reduce){ #gate{animation:none} }
+
+  .mark{ font-weight:700; font-size:clamp(30px,7.5vw,66px); letter-spacing:-.03em; line-height:1; }
+  .sub{ margin-top:14px; font-size:clamp(9px,1.5vw,11px); letter-spacing:.36em; text-transform:uppercase; color:var(--grey); }
+
+  .wave{ display:block; width:min(300px,58vw); height:24px; color:var(--ink); opacity:.42; }
+
+  .btns{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center }
+  button.src{
+    font:inherit; font-size:clamp(12px,1.7vw,14px); letter-spacing:.01em;
+    color:var(--ink); background:transparent; border:1px solid var(--ink); border-radius:0;
+    padding:14px 22px; cursor:pointer; transition:background .12s ease, color .12s ease;
   }
-  #gate p{margin:0;color:#7fa; opacity:.8; font-size:clamp(11px,2vw,14px); letter-spacing:.04em; max-width:40ch; line-height:1.7}
-  .btns{display:flex; gap:14px; flex-wrap:wrap; justify-content:center}
-  button.go{
-    cursor:pointer; font:inherit; font-size:clamp(13px,2.2vw,15px); letter-spacing:.1em;
-    color:#04050a; background:var(--neon); border:none; border-radius:10px; padding:15px 24px;
-    box-shadow:0 0 30px -6px var(--neon); text-transform:uppercase;
-  }
-  button.go.alt{ background:var(--neon2); box-shadow:0 0 30px -6px var(--neon2); }
-  button.go:hover{ filter:brightness(1.12) }
-  #keys{color:#4a6b7a; font-size:10px; letter-spacing:.1em}
-  #err{color:#e5534b; font-size:12px; min-height:1.2em}
+  button.src .arw{ opacity:.4; margin-left:10px }
+  button.src:hover{ background:var(--ink); color:var(--paper); }
+  button.src:hover .arw{ opacity:.7 }
+  button.src:focus-visible{ outline:2px solid var(--ink); outline-offset:4px }
+
+  #err{ color:var(--ink); font-size:12px; min-height:1.1em; letter-spacing:.01em; max-width:46ch; line-height:1.6 }
+  .keys{ font-size:10px; letter-spacing:.26em; text-transform:uppercase; color:var(--grey) }
+
   #toast{
-    position:fixed; left:16px; bottom:14px; z-index:9; pointer-events:none;
-    color:var(--neon2); font-size:11px; letter-spacing:.08em; text-shadow:0 0 10px rgba(42,212,255,.6);
-    background:rgba(4,5,10,.5); padding:6px 10px; border-radius:6px; opacity:0; transition:opacity .5s ease;
+    position:fixed; left:18px; bottom:16px; z-index:9; pointer-events:none;
+    font-family:var(--mono); font-size:10px; letter-spacing:.22em; text-transform:uppercase;
+    color:#e6e6e2; background:rgba(0,0,0,.4); padding:6px 10px; opacity:0; transition:opacity .5s ease;
   }
 </style>
 </head>
 <body>
   <canvas id="viz"></canvas>
   <div id="toast"></div>
+
   <div id="gate">
-    <h1>BUTTERCHURN</h1>
-    <p>Milkdrop-style audio visuals. Pick a sound source:</p>
+    <div>
+      <div class="mark">butterchurn.</div>
+      <div class="sub">milkdrop visualiser</div>
+    </div>
+
+    <svg class="wave" viewBox="0 0 240 24" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 12 q10 -8 20 0 q10 8 20 0 q10 -8 20 0 q10 8 20 0 q10 -8 20 0 q10 8 20 0 q10 -8 20 0 q10 8 20 0 q10 -8 20 0 q10 8 20 0 q10 -8 20 0 q10 8 20 0"
+            fill="none" stroke="currentColor" stroke-width="1.2"/>
+    </svg>
+
     <div class="btns">
-      <button id="desktop" class="go">🎵 Desktop / tab audio</button>
-      <button id="mic" class="go alt">🎤 Microphone</button>
+      <button id="desktop" class="src">Desktop / tab audio<span class="arw">&rarr;</span></button>
+      <button id="mic" class="src">Microphone<span class="arw">&rarr;</span></button>
     </div>
     <div id="err"></div>
-    <div id="keys">Desktop: pick a Tab or “Entire Screen” and enable “Share audio”. · SPACE next preset · F fullscreen</div>
+    <div class="keys">space next &nbsp;·&nbsp; f fullscreen</div>
   </div>
 
 <script src="./butterchurn.min.js"></script>
@@ -66,7 +88,7 @@
   let visualizer, presetKeys = [], idx = 0, cycleTimer, toastTimer;
 
   function showToast(name){
-    toast.textContent = '▚ ' + name; toast.style.opacity = '1';
+    toast.textContent = name; toast.style.opacity = '1';
     clearTimeout(toastTimer); toastTimer = setTimeout(()=>toast.style.opacity='0', 3500);
   }
   function sizeTo(){
@@ -80,14 +102,10 @@
   }
   function goFullscreen(){ if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{}); }
 
-  // --- audio sources ---
   function micStream(){ return navigator.mediaDevices.getUserMedia({ audio: true, video: false }); }
   async function desktopStream(){
-    const s = await navigator.mediaDevices.getDisplayMedia({
-      video: true, audio: true,   // video is required to get a picker; we drop it below
-      systemAudio: 'include', selfBrowserSurface: 'include',
-    });
-    s.getVideoTracks().forEach(t => t.stop());          // we only want the audio
+    const s = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true, systemAudio: 'include', selfBrowserSurface: 'include' });
+    s.getVideoTracks().forEach(t => t.stop());
     if (s.getAudioTracks().length === 0)
       throw new Error('No audio was shared — pick a Tab or "Entire Screen" and tick "Share audio".');
     return s;
@@ -98,8 +116,9 @@
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let stream;
     try { stream = await getStream(); }
-    catch(e){ errEl.textContent = e.message || 'Could not get audio.'; return; }   // stay on gate, show why
-    gate.style.display = 'none';
+    catch(e){ errEl.textContent = e.message || 'Could not get audio.'; return; }
+    gate.style.opacity = '0';
+    setTimeout(()=>{ gate.style.display = 'none'; }, 300);
     goFullscreen();
     visualizer = B.createVisualizer(audioCtx, canvas, { width: innerWidth, height: innerHeight, pixelRatio: devicePixelRatio||1, textureRatio: 1 });
     sizeTo();
