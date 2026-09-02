@@ -30,7 +30,7 @@ pages:
               <p style="color:#e5534b;font-size:.85em">metrics: {{ .JSON.String "error" }}</p>
               {{ else }}
               <div style="display:flex;justify-content:space-between;font-size:.8em;color:#8b98a5;margin-bottom:6px">
-                <span>{{ .JSON.Int "host.containers_running" }}/{{ .JSON.Int "host.containers_total" }} up</span>
+                <span>{{ .JSON.Int "totals.count" }} running</span>
                 <span>{{ .JSON.Int "host.cpus" }} vCPU</span>
                 <span>{{ printf "%.0f" (.JSON.Float "totals.mem_mib") }}/{{ .JSON.Int "host.mem_total_mib" }} MiB</span>
               </div>
