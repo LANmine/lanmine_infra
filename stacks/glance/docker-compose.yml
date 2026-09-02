@@ -14,6 +14,7 @@ services:
         curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/glance/glance.yml?ref=main' -o /app/config/glance.yml
         mkdir -p /app/config/assets
         curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/glance/custom.css?ref=main' -o /app/config/assets/custom.css
+        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/glance/custom.js?ref=main' -o /app/config/assets/custom.js
     volumes:
       - config:/app/config
 

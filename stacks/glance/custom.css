@@ -39,3 +39,33 @@ body::before {
 }
 @keyframes dash-grid-drift { from { background-position: 0 0; } to { background-position: 0 44px; } }
 @media (prefers-reduced-motion: reduce) { body::before { animation: none; } }
+
+/* Native countdown (html widget) — transparent container so the page grid shows through. */
+.lm-countdown,
+.lm-countdown .widget-content {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.lm-cd { text-align: center; padding: 24px 12px 30px; }
+.lm-cd-kicker {
+  font-weight: 600; letter-spacing: 0.42em; color: #ee982b;
+  font-size: clamp(0.7rem, 1.6vw, 0.95rem); text-transform: uppercase;
+}
+.lm-cd-title {
+  font-family: 'Alegreya Sans', 'Poppins', sans-serif; font-weight: 800;
+  text-transform: uppercase; color: #fff; line-height: 0.95; margin: 0.14em 0 0.1em;
+  font-size: clamp(2.4rem, 8vw, 6rem);
+}
+.lm-cd-dates { color: #efefef; opacity: 0.85; font-size: clamp(0.85rem, 2.4vw, 1.25rem); margin-bottom: 1.1em; }
+.lm-cd-timer { display: flex; gap: clamp(10px, 3vw, 40px); justify-content: center; flex-wrap: wrap; }
+.lm-cd-num {
+  font-family: 'Alegreya Sans', 'Poppins', sans-serif; font-weight: 800;
+  font-variant-numeric: tabular-nums; color: #efefef; line-height: 1;
+  font-size: clamp(2.2rem, 9vw, 5.5rem);
+}
+.lm-cd-lbl { margin-top: 0.5em; letter-spacing: 0.34em; color: #9aa3a8; text-transform: uppercase; font-weight: 500; font-size: clamp(0.55rem, 1.6vw, 0.85rem); }
+.lm-cd-live {
+  color: #ee982b; letter-spacing: 0.3em; font-weight: 700; text-transform: uppercase;
+  font-family: 'Alegreya Sans', 'Poppins', sans-serif; margin-top: 1em; font-size: clamp(1rem, 4vw, 2rem);
+}
