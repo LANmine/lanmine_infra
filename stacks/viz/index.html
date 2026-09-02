@@ -4,87 +4,35 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>butterchurn</title>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
 <style>
-  :root{
-    --paper:#e6e6e2; --ink:#121212; --grey:#6f6f6a;
-    --mono:'Space Mono', ui-monospace, "Courier New", monospace;
-  }
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:#000;overflow:hidden}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;cursor:none}
   #viz{display:block;width:100vw;height:100vh;background:#000}
-
-  #gate{
-    position:fixed; inset:0; z-index:10; background:var(--paper); color:var(--ink);
-    font-family:var(--mono); font-weight:400;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:30px; text-align:center; padding:28px;
-    opacity:1; transition:opacity .3s ease; animation:gate-in .3s ease both;
+  #hint,#toast{
+    position:fixed; z-index:9; pointer-events:none;
+    font-family:ui-monospace,"Courier New",monospace; font-size:10px; letter-spacing:.22em;
+    text-transform:uppercase; color:#e6e6e2; background:rgba(0,0,0,.4); padding:6px 10px;
+    transition:opacity .6s ease;
   }
-  @keyframes gate-in{from{opacity:0}to{opacity:1}}
-  @media (prefers-reduced-motion:reduce){ #gate{animation:none} }
-
-  .mark{ font-weight:700; font-size:clamp(30px,7.5vw,66px); letter-spacing:-.03em; line-height:1; }
-  .sub{ margin-top:14px; font-size:clamp(9px,1.5vw,11px); letter-spacing:.36em; text-transform:uppercase; color:var(--grey); }
-  .wave{ display:block; width:min(300px,58vw); height:24px; color:var(--ink); opacity:.42; }
-
-  .btns{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; max-width:640px }
-  button.src{
-    font:inherit; font-size:clamp(12px,1.7vw,14px); letter-spacing:.01em;
-    color:var(--ink); background:transparent; border:1px solid var(--ink); border-radius:0;
-    padding:14px 22px; cursor:pointer; transition:background .12s ease, color .12s ease;
-  }
-  button.src .arw{ opacity:.4; margin-left:10px }
-  button.src:hover{ background:var(--ink); color:var(--paper); }
-  button.src:hover .arw{ opacity:.7 }
-  button.src:focus-visible{ outline:2px solid var(--ink); outline-offset:4px }
-
-  #err{ color:var(--ink); font-size:12px; min-height:1.1em; letter-spacing:.01em; max-width:46ch; line-height:1.6 }
-  .keys{ font-size:10px; letter-spacing:.26em; text-transform:uppercase; color:var(--grey) }
-
-  #toast{
-    position:fixed; left:18px; bottom:16px; z-index:9; pointer-events:none;
-    font-family:var(--mono); font-size:10px; letter-spacing:.22em; text-transform:uppercase;
-    color:#e6e6e2; background:rgba(0,0,0,.4); padding:6px 10px; opacity:0; transition:opacity .5s ease;
-  }
+  #hint{ left:50%; bottom:16px; transform:translateX(-50%); opacity:.85 }
+  #toast{ left:18px; bottom:16px; opacity:0 }
 </style>
 </head>
 <body>
   <canvas id="viz"></canvas>
   <div id="toast"></div>
-
-  <div id="gate">
-    <div>
-      <div class="mark">butterchurn.</div>
-      <div class="sub">milkdrop visualiser</div>
-    </div>
-
-    <svg class="wave" viewBox="0 0 240 24" preserveAspectRatio="none" aria-hidden="true">
-      <path d="M0 12 q10 -8 20 0 q10 8 20 0 q10 -8 20 0 q10 8 20 0 q10 -8 20 0 q10 8 20 0 q10 -8 20 0 q10 8 20 0 q10 -8 20 0 q10 8 20 0 q10 -8 20 0 q10 8 20 0"
-            fill="none" stroke="currentColor" stroke-width="1.2"/>
-    </svg>
-
-    <div class="btns">
-      <button id="desktop" class="src">Desktop / tab audio<span class="arw">&rarr;</span></button>
-      <button id="mic" class="src">Microphone<span class="arw">&rarr;</span></button>
-      <button id="ambient" class="src">Just the visuals<span class="arw">&rarr;</span></button>
-    </div>
-    <div id="err"></div>
-    <div class="keys">space next &nbsp;·&nbsp; f fullscreen</div>
-  </div>
+  <div id="hint">space next &nbsp;·&nbsp; f fullscreen &nbsp;·&nbsp; d desktop audio &nbsp;·&nbsp; m mic</div>
 
 <script src="./butterchurn.min.js"></script>
 <script src="./butterchurnPresets.min.js"></script>
 <script>
 (function(){
   const canvas = document.getElementById('viz');
-  const gate = document.getElementById('gate');
-  const errEl = document.getElementById('err');
   const toast = document.getElementById('toast');
+  const hint = document.getElementById('hint');
   const B = (window.butterchurn && (window.butterchurn.default || window.butterchurn));
   const P = (window.butterchurnPresets && (window.butterchurnPresets.default || window.butterchurnPresets));
-  let visualizer, presetKeys = [], idx = 0, cycleTimer, toastTimer;
+  let ctx, visualizer, presetKeys = [], idx = 0, toastTimer, ambientMix, ambientBeat;
 
   function showToast(name){
     toast.textContent = name; toast.style.opacity = '1';
@@ -101,83 +49,68 @@
   }
   function goFullscreen(){ if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{}); }
 
-  // --- sources: each returns an AudioNode to hand to Butterchurn ---
-  async function srcMic(ctx){
-    const s = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    return ctx.createMediaStreamSource(s);
-  }
-  async function srcDesktop(ctx){
-    const s = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true, systemAudio: 'include', selfBrowserSurface: 'include' });
-    s.getVideoTracks().forEach(t => t.stop());
-    if (s.getAudioTracks().length === 0)
-      throw new Error('No audio was shared — pick a Tab or "Entire Screen" and tick "Share audio".');
-    return ctx.createMediaStreamSource(s);
-  }
-  // Self-contained generative signal — drives the visuals, makes no sound (routed through a muted gain).
-  function srcAmbient(ctx){
-    const mix = ctx.createGain(); mix.gain.value = 0.9;
-    const mute = ctx.createGain(); mute.gain.value = 0;       // silent, but keeps the graph running
-    mix.connect(mute); mute.connect(ctx.destination);
-
-    const kick = ctx.createOscillator(); kick.type = 'sine'; kick.frequency.value = 55;
-    const kickG = ctx.createGain(); kickG.gain.value = 0.0001;
-    kick.connect(kickG).connect(mix); kick.start();
-
-    const mid = ctx.createOscillator(); mid.type = 'sawtooth'; mid.frequency.value = 220;
-    const midG = ctx.createGain(); midG.gain.value = 0.15;
-    mid.connect(midG).connect(mix); mid.start();
-    const fLfo = ctx.createOscillator(); fLfo.type = 'sine'; fLfo.frequency.value = 0.06;
-    const fLfoG = ctx.createGain(); fLfoG.gain.value = 170;
-    fLfo.connect(fLfoG).connect(mid.frequency); fLfo.start();
-    const aLfo = ctx.createOscillator(); aLfo.type = 'sine'; aLfo.frequency.value = 0.35;
-    const aLfoG = ctx.createGain(); aLfoG.gain.value = 0.12;
-    aLfo.connect(aLfoG).connect(midG.gain); aLfo.start();
-
-    const nb = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-    const nd = nb.getChannelData(0); for (let i=0;i<nd.length;i++) nd[i] = Math.random()*2-1;
-    const noise = ctx.createBufferSource(); noise.buffer = nb; noise.loop = true;
+  // self-contained generative signal — drives the visuals, makes no sound (muted gain keeps the graph alive)
+  function buildAmbient(){
+    ambientMix = ctx.createGain(); ambientMix.gain.value = 0.9;
+    const mute = ctx.createGain(); mute.gain.value = 0; ambientMix.connect(mute); mute.connect(ctx.destination);
+    const kick = ctx.createOscillator(); kick.type='sine'; kick.frequency.value=55;
+    const kickG = ctx.createGain(); kickG.gain.value=0.0001; kick.connect(kickG).connect(ambientMix); kick.start();
+    const mid = ctx.createOscillator(); mid.type='sawtooth'; mid.frequency.value=220;
+    const midG = ctx.createGain(); midG.gain.value=0.15; mid.connect(midG).connect(ambientMix); mid.start();
+    const fL = ctx.createOscillator(); fL.type='sine'; fL.frequency.value=0.06; const fLG=ctx.createGain(); fLG.gain.value=170; fL.connect(fLG).connect(mid.frequency); fL.start();
+    const aL = ctx.createOscillator(); aL.type='sine'; aL.frequency.value=0.35; const aLG=ctx.createGain(); aLG.gain.value=0.12; aL.connect(aLG).connect(midG.gain); aL.start();
+    const nb = ctx.createBuffer(1, ctx.sampleRate*2, ctx.sampleRate); const nd=nb.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1;
+    const noise = ctx.createBufferSource(); noise.buffer=nb; noise.loop=true;
     const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=3200; bp.Q.value=0.6;
-    const nG = ctx.createGain(); nG.gain.value = 0.05;
-    noise.connect(bp).connect(nG).connect(mix); noise.start();
-
-    const beat = () => {
-      const t = ctx.currentTime;
-      kickG.gain.cancelScheduledValues(t);
-      kickG.gain.setValueAtTime(0.0001, t);
-      kickG.gain.exponentialRampToValueAtTime(0.9, t + 0.02);
-      kickG.gain.exponentialRampToValueAtTime(0.0001, t + 0.30);
-    };
-    setInterval(beat, 500); beat();
-    return mix;
+    const nG = ctx.createGain(); nG.gain.value=0.05; noise.connect(bp).connect(nG).connect(ambientMix); noise.start();
+    const beat = ()=>{ const t=ctx.currentTime; kickG.gain.cancelScheduledValues(t); kickG.gain.setValueAtTime(0.0001,t); kickG.gain.exponentialRampToValueAtTime(0.9,t+0.02); kickG.gain.exponentialRampToValueAtTime(0.0001,t+0.30); };
+    ambientBeat = setInterval(beat, 500); beat();
+    return ambientMix;
+  }
+  function silenceAmbient(){
+    if (ambientBeat){ clearInterval(ambientBeat); ambientBeat = null; }
+    if (ambientMix){ try{ ambientMix.gain.setTargetAtTime(0, ctx.currentTime, 0.1); }catch(e){} }
   }
 
-  async function start(getSource){
-    errEl.textContent = '';
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    let node;
-    try { node = await getSource(ctx); }
-    catch(e){ errEl.textContent = e.message || 'Could not start.'; return; }
-    gate.style.opacity = '0';
-    setTimeout(()=>{ gate.style.display = 'none'; }, 300);
-    goFullscreen();
+  // optional live audio (keyboard: D / M) — needs the keypress as the user gesture
+  async function useDesktop(){
+    const s = await navigator.mediaDevices.getDisplayMedia({ video:true, audio:true, systemAudio:'include', selfBrowserSurface:'include' });
+    s.getVideoTracks().forEach(t=>t.stop());
+    if (!s.getAudioTracks().length){ showToast('no audio shared'); return; }
+    silenceAmbient(); visualizer.connectAudio(ctx.createMediaStreamSource(s)); showToast('desktop audio');
+  }
+  async function useMic(){
+    const s = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
+    silenceAmbient(); visualizer.connectAudio(ctx.createMediaStreamSource(s)); showToast('microphone');
+  }
+
+  function init(){
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
     visualizer = B.createVisualizer(ctx, canvas, { width: innerWidth, height: innerHeight, pixelRatio: devicePixelRatio||1, textureRatio: 1 });
     sizeTo();
-    try { visualizer.connectAudio(node); } catch(e){ console.warn('connectAudio failed', e); }
+    visualizer.connectAudio(buildAmbient());
     presetKeys = Object.keys(P.getPresets());
     loadPreset(Math.floor(Math.random()*presetKeys.length), 0);
-    cycleTimer = setInterval(()=>loadPreset(Math.floor(Math.random()*presetKeys.length), 5.7), 16000);
+    setInterval(()=>loadPreset(Math.floor(Math.random()*presetKeys.length), 5.7), 16000);
     (function render(){ requestAnimationFrame(render); visualizer.render(); })();
+    // AudioContext starts suspended without a gesture; resume on the first interaction so the beat kicks in
+    ctx.resume().catch(()=>{});
+    const resume = ()=>ctx.resume().catch(()=>{});
+    ['pointerdown','keydown','touchstart'].forEach(e=>addEventListener(e, resume, { once:true }));
+    // fade the hint out
+    setTimeout(()=>{ hint.style.opacity = '0'; }, 6000);
   }
 
-  document.getElementById('desktop').addEventListener('click', ()=>start(srcDesktop));
-  document.getElementById('mic').addEventListener('click', ()=>start(srcMic));
-  document.getElementById('ambient').addEventListener('click', ()=>start(srcAmbient));
   addEventListener('resize', sizeTo);
   addEventListener('keydown', e=>{
     if (!visualizer) return;
     if (e.code === 'Space'){ e.preventDefault(); loadPreset(idx+1, 2.7); }
-    if (e.key === 'f' || e.key === 'F'){ if (document.fullscreenElement) document.exitFullscreen(); else goFullscreen(); }
+    else if (e.key === 'f' || e.key === 'F'){ if (document.fullscreenElement) document.exitFullscreen(); else goFullscreen(); }
+    else if (e.key === 'd' || e.key === 'D'){ useDesktop().catch(err=>showToast('desktop audio failed')); }
+    else if (e.key === 'm' || e.key === 'M'){ useMic().catch(err=>showToast('mic failed')); }
   });
+
+  if (document.readyState === 'loading') addEventListener('DOMContentLoaded', init); else init();
 })();
 </script>
 </body>
