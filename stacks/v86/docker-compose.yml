@@ -1,7 +1,7 @@
 services:
   # v86 — x86 PC emulator (WASM) booting FreeDOS in the browser. Bind mounts are
-  # disabled, so an init container pulls the page + disk image from the repo into a
-  # named volume; nginx serves them. The v86 runtime/BIOS load from the jsdelivr CDN.
+  # disabled, so an init container pulls the page, the matched v86 runtime/BIOS, and
+  # the disk image from the repo into a named volume; nginx serves them (all same-origin).
   content-loader:
     image: curlimages/curl:latest
     restart: "no"
@@ -13,6 +13,10 @@ services:
         set -e
         mkdir -p /usr/share/nginx/html
         curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/v86/index.html?ref=main' -o /usr/share/nginx/html/index.html
+        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/v86/libv86.js?ref=main' -o /usr/share/nginx/html/libv86.js
+        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/v86/v86.wasm?ref=main' -o /usr/share/nginx/html/v86.wasm
+        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/v86/seabios.bin?ref=main' -o /usr/share/nginx/html/seabios.bin
+        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/v86/vgabios.bin?ref=main' -o /usr/share/nginx/html/vgabios.bin
         curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/v86/freedos722.img?ref=main' -o /usr/share/nginx/html/freedos722.img
     volumes:
       - site:/usr/share/nginx/html
