@@ -13,8 +13,6 @@ services:
     user: "0:0"
     security_opt:
       - no-new-privileges:true
-    cap_drop:
-      - ALL
     entrypoint:
       - /bin/sh
       - -c
@@ -38,8 +36,6 @@ services:
       - /tmp
     security_opt:
       - no-new-privileges:true
-    cap_drop:
-      - ALL
     environment:
       - PORTAINER_RO_TOKEN=${PORTAINER_RO_TOKEN}
       - PORTAINER_URL=https://portainer.ragnarok.eslg.no
