@@ -3,10 +3,18 @@ services:
   # (server-side only, injected as a secret), polls the Docker API, and serves a
   # sanitized, tokenless JSON summary on the internal network for Glance to render.
   # No Traefik labels => never publicly reachable. The token never leaves this container.
+  #
+  # Hardening (this is the only container holding a write-capable Portainer token,
+  # so it is locked down hard): images pinned by digest (no poisoned-tag pulls),
+  # runs non-root, all Linux caps dropped, no privilege escalation, read-only rootfs.
   content-loader:
-    image: curlimages/curl:latest
+    image: curlimages/curl:latest@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777
     restart: "no"
     user: "0:0"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     entrypoint:
       - /bin/sh
       - -c
@@ -18,18 +26,27 @@ services:
       - app:/app
 
   metrics:
-    image: python:3.12-alpine
+    image: python:3.12-alpine@sha256:b64631e04e4920160c50fbe8d8df828f7f35f06f425cb44aa09bca53e708a35a
     restart: unless-stopped
     depends_on:
       content-loader:
         condition: service_completed_successfully
     command: ["python", "/app/metrics.py"]
+    user: "65534:65534"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     environment:
       - PORTAINER_RO_TOKEN=${PORTAINER_RO_TOKEN}
       - PORTAINER_URL=https://portainer.ragnarok.eslg.no
       - PORTAINER_ENDPOINT_ID=7
+      - PYTHONDONTWRITEBYTECODE=1
     volumes:
-      - app:/app
+      - app:/app:ro
     networks:
       traefik:
         aliases:
