@@ -4,6 +4,8 @@ services:
   daedalos:
     image: lscr.io/linuxserver-labs/daedalos@sha256:9d145bc1d74322ce422abb83292d54e1e850209fea9bd0598dee469853b1164f
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     networks:
       - traefik
     labels:

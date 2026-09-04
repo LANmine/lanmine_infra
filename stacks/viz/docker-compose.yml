@@ -6,6 +6,8 @@ services:
   content-loader:
     image: curlimages/curl:latest
     restart: "no"
+    security_opt:
+      - no-new-privileges:true
     user: "0:0"
     entrypoint:
       - /bin/sh
@@ -20,8 +22,10 @@ services:
       - site:/usr/share/nginx/html
 
   viz:
-    image: nginx:alpine
+    image: nginxinc/nginx-unprivileged:alpine@sha256:aa8c9087d36d93e9d650c5365f883b421e8214aedbad24ade52b844c583358f1
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       content-loader:
         condition: service_completed_successfully
@@ -34,7 +38,7 @@ services:
       - traefik.docker.network=traefik
       - traefik.http.routers.viz.rule=Host(`viz.tech.lanmine.no`)
       - traefik.http.routers.viz.service=viz
-      - traefik.http.services.viz.loadbalancer.server.port=80
+      - traefik.http.services.viz.loadbalancer.server.port=8080
 
 volumes:
   site:

@@ -6,6 +6,8 @@ services:
   config-loader:
     image: curlimages/curl:latest
     restart: "no"
+    security_opt:
+      - no-new-privileges:true
     user: "0:0"          # write to the fresh named volume (owned by root)
     entrypoint:
       - /bin/sh
@@ -20,6 +22,8 @@ services:
   gatus:
     image: twinproduction/gatus:latest
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       config-loader:
         condition: service_completed_successfully

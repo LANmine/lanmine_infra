@@ -5,6 +5,8 @@ services:
   content-loader:
     image: curlimages/curl:latest
     restart: "no"
+    security_opt:
+      - no-new-privileges:true
     user: "0:0"
     entrypoint:
       - /bin/sh
@@ -20,6 +22,8 @@ services:
   web:
     image: httpd:latest
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       content-loader:
         condition: service_completed_successfully

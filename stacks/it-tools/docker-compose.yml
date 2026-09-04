@@ -2,6 +2,8 @@ services:
   it-tools:
     image: corentinth/it-tools:latest
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     networks:
       - traefik
     labels:
