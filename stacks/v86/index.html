@@ -7,11 +7,11 @@
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
   #screen_container { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
-  /* Text console: scale with the viewport so the 80x25 screen fills the page. */
+  /* Text console: font-size is set by JS to fit the whole 80x25 grid in the viewport. */
   #screen_container > div { white-space: pre; font-family: 'Courier New', monospace;
-    font-size: 1.9vw; line-height: 2.15vw; color: #33ff66; }
-  /* Graphics mode: upscale to the viewport height, crisp pixels. */
-  #screen_container > canvas { image-rendering: pixelated; height: 96vh; width: auto; max-width: 100vw; }
+    font-size: 16px; line-height: 18px; color: #33ff66; }
+  /* Graphics mode: JS scales the canvas to fit; crisp pixels. */
+  #screen_container > canvas { image-rendering: pixelated; }
   #boot { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 2;
     color: #9aa3a8; font-family: ui-monospace, monospace; font-size: 13px; letter-spacing: .15em; }
 </style>
@@ -35,9 +35,34 @@
     vga_memory_size: 8 * 1024 * 1024,
     autostart: true,
   });
+  // Fit the screen to the window: measure the console/canvas and scale it to fit
+  // both width and height (v86's text screen is a fixed 80x25 grid).
+  var td = document.querySelector("#screen_container > div");
+  var cv = document.querySelector("#screen_container > canvas");
+  var mode = "text";
+  function fit() {
+    if (mode === "text") {
+      td.style.fontSize = "16px"; td.style.lineHeight = "18px";
+      var w = td.scrollWidth, h = td.scrollHeight;
+      if (w > 4 && h > 4) {
+        var s = Math.min(window.innerWidth / w, window.innerHeight / h) * 0.99;
+        td.style.fontSize = (16 * s).toFixed(2) + "px";
+        td.style.lineHeight = (18 * s).toFixed(2) + "px";
+      }
+    } else if (cv.width > 0) {
+      var s2 = Math.min(window.innerWidth / cv.width, window.innerHeight / cv.height) * 0.99;
+      cv.style.width = (cv.width * s2) + "px";
+      cv.style.height = (cv.height * s2) + "px";
+    }
+  }
   emu.add_listener("emulator-ready", function () {
     var b = document.getElementById("boot"); if (b) b.remove();
+    fit();
   });
+  emu.add_listener("screen-set-size-text", function () { mode = "text"; fit(); });
+  emu.add_listener("screen-set-size-graphical", function () { mode = "graphical"; fit(); });
+  window.addEventListener("resize", fit);
+  [500, 1500, 3000, 6000].forEach(function (t) { setTimeout(fit, t); });
 </script>
 </body>
 </html>
