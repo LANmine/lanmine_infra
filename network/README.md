@@ -40,8 +40,8 @@ docs for the runner setup.
 
 ```
 inventory/hosts.yaml     devices, roles, mgmt IPs, platform
-group_vars/{all,gw,core,edge}.yaml   settings shared per role
-host_vars/edge01.yaml    per-device values (hostname, uplink, access VLANs, table/row)
+inventory/group_vars/{all,gw,core,edge}.yaml   settings shared per role
+inventory/host_vars/edge01.yaml   per-device values (hostname, uplink, access VLANs, table/row)
 templates/{gw,core,edge}.j2          Jinja config templates
 intended/                rendered configs (CI output)
 backups/                 running-config pulled by the drift job
@@ -50,7 +50,7 @@ playbooks/{render,deploy,backup}.yml
 
 ## Add / change a switch
 
-1. Add the device to `inventory/hosts.yaml` and a `host_vars/<name>.yaml`.
+1. Add the device to `inventory/hosts.yaml` and (if it needs specifics) an `inventory/host_vars/<name>.yaml`.
 2. Adjust the relevant template if needed.
 3. Open a PR. `net-validate` lints and renders it (no device is touched).
 4. A maintainer reviews the rendered diff and merges. `net-deploy` applies it.
