@@ -1,0 +1,11 @@
+# Keeps GitHub Actions up to date even though they're pinned to commit SHAs.
+# Dependabot opens a PR to bump each pinned SHA (and its # version comment)
+# when a new release ships, so pinning doesn't mean going stale.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
