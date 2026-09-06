@@ -71,43 +71,46 @@ pages:
               </div>
 
           - type: monitor
-            title: LANmine services
+            title: Services
             cache: 1m
             sites:
-              - title: Dashboard
-                url: https://dash.tech.lanmine.no
               - title: Status page
                 url: https://status.tech.lanmine.no
-              - title: Countdown
-                url: https://countdown.tech.lanmine.no
               - title: IT-Tools
                 url: https://tools.tech.lanmine.no
+              - title: CyberChef
+                url: https://cyber.tech.lanmine.no
               - title: PrivateBin
                 url: https://paste.tech.lanmine.no
-              - title: Snake
-                url: https://snake.tech.lanmine.no
+
+          - type: monitor
+            title: Fun & games
+            cache: 1m
+            sites:
               - title: DOOM
                 url: https://doom.tech.lanmine.no
               - title: Arcade
                 url: https://arcade.tech.lanmine.no
-              - title: Matrix
-                url: https://matrix.tech.lanmine.no
-              - title: Butterchurn
-                url: https://viz.tech.lanmine.no
+              - title: Snake
+                url: https://snake.tech.lanmine.no
               - title: v86
                 url: https://v86.tech.lanmine.no
               - title: daedalOS
                 url: https://daedalos.tech.lanmine.no
-              - title: CyberChef
-                url: https://cyber.tech.lanmine.no
-              - title: Example
+              - title: Matrix
+                url: https://matrix.tech.lanmine.no
+              - title: Butterchurn
+                url: https://viz.tech.lanmine.no
+              - title: NETPANDAS
                 url: https://example.tech.lanmine.no
+              - title: Countdown
+                url: https://countdown.tech.lanmine.no
 
       - size: small
         widgets:
           - type: bookmarks
             groups:
-              # Links only — service health lives in the "LANmine services" widget.
+              # Links only — service health lives in the Services / Fun widgets.
               - title: Links
                 links:
                   - title: LANmine site
