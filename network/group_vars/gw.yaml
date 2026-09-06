@@ -1,0 +1,10 @@
+---
+# gw1/gw2 — L3 routers on the edge of the LAN. First-hop redundancy via HSRP.
+role: gw
+uplink_interface: GigabitEthernet0/0        # to the ISP / upstream
+default_gateway: 203.0.113.1                 # upstream next-hop (example)
+
+# HSRP virtual gateways the participants use (one per routed VLAN).
+hsrp_groups:
+  - {vlan: 10, virtual_ip: 10.10.0.1}
+  - {vlan: 30, virtual_ip: 10.30.0.1}

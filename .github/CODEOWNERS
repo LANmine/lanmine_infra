@@ -4,3 +4,7 @@
 
 /.github/       @hermanl0 @chhaugen
 /scripts/       @hermanl0 @chhaugen
+
+# Network device configs push to real switches over the mgmt VLAN from the
+# self-hosted runner — high impact, maintainer review required.
+/network/       @hermanl0 @chhaugen

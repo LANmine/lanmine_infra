@@ -1,0 +1,27 @@
+! {{ inventory_hostname }} — Nexus core (Cisco NX-OS)
+! Rendered from git. Do not edit on the device.
+hostname {{ inventory_hostname }}
+!
+{% for ntp in ntp_servers %}
+ntp server {{ ntp }} use-vrf management
+{% endfor %}
+!
+{% for id, name in vlans.items() %}
+vlan {{ id }}
+  name {{ name }}
+{% endfor %}
+!
+interface mgmt0
+  description management
+  ip address {{ ansible_host }}/24
+!
+! Downlinks to the edge switches carry all participant VLANs.
+! Example (repeat per physical downlink port):
+! interface Ethernet1/1
+!   description to-edge
+!   switchport
+!   switchport mode trunk
+!   switchport trunk allowed vlan {{ edge_trunk_allowed_vlans }}
+!
+! vPC peer-link + keepalive between core1/core2 go here on a real build.
+end

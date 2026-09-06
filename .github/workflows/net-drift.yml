@@ -1,0 +1,39 @@
+name: Network drift
+
+# Compares what's actually running on the switches against the intended config in
+# git, and flags drift. Runs on the self-hosted runner (needs device access).
+#
+# workflow_dispatch only for now. Once the runner + devices exist, uncomment the
+# schedule to run it nightly.
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: '30 3 * * *'   # ~04:30 Oslo
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    runs-on: [self-hosted, lanmine-net]
+    defaults:
+      run:
+        working-directory: network
+    env:
+      NET_USER: ${{ secrets.NET_USER }}
+      NET_PASSWORD: ${{ secrets.NET_PASSWORD }}
+      NET_SNMP_COMMUNITY: ${{ secrets.NET_SNMP_COMMUNITY }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Install tooling
+        run: python3 -m pip install --quiet ansible-core
+
+      - name: Install collections
+        run: ansible-galaxy collection install -r requirements.yml
+
+      - name: Render intended configs
+        run: ansible-playbook playbooks/render.yml
+
+      - name: Check for drift (dry-run diff against live devices)
+        run: ansible-playbook playbooks/deploy.yml --check --diff

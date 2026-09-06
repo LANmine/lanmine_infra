@@ -1,0 +1,45 @@
+name: Deploy network configs
+
+# Applies configs to the real switches from the on-site self-hosted runner
+# (label: lanmine-net), which reaches them over the management VLAN.
+#
+# Currently workflow_dispatch only. Once the self-hosted runner is registered,
+# uncomment the push trigger so a merge to main auto-deploys the changed configs.
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'network/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: net-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, lanmine-net]
+    defaults:
+      run:
+        working-directory: network
+    env:
+      NET_USER: ${{ secrets.NET_USER }}
+      NET_PASSWORD: ${{ secrets.NET_PASSWORD }}
+      NET_SNMP_COMMUNITY: ${{ secrets.NET_SNMP_COMMUNITY }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Install tooling
+        run: python3 -m pip install --quiet ansible-core
+
+      - name: Install collections
+        run: ansible-galaxy collection install -r requirements.yml
+
+      - name: Dry-run (diff only, no changes)
+        run: ansible-playbook playbooks/deploy.yml --check --diff
+
+      - name: Apply
+        run: ansible-playbook playbooks/deploy.yml

@@ -1,0 +1,30 @@
+---
+# Device inventory. mgmt IPs live on the management VLAN; the self-hosted runner
+# reaches them over that VLAN. Credentials come from env (Actions secrets), never here.
+all:
+  vars:
+    ansible_connection: ansible.netcommon.network_cli
+    ansible_user: "{{ lookup('env', 'NET_USER') }}"
+    ansible_password: "{{ lookup('env', 'NET_PASSWORD') }}"
+    snmp_community: "{{ lookup('env', 'NET_SNMP_COMMUNITY') | default('', true) }}"
+  children:
+    gw:
+      vars:
+        ansible_network_os: cisco.ios.ios
+      hosts:
+        gw1: {ansible_host: 10.0.0.2, hsrp_priority: 110}   # primary
+        gw2: {ansible_host: 10.0.0.3, hsrp_priority: 90}    # backup
+    core:
+      vars:
+        ansible_network_os: cisco.nxos.nxos
+      hosts:
+        core1: {ansible_host: 10.0.0.4}
+        core2: {ansible_host: 10.0.0.5}
+    edge:
+      vars:
+        ansible_network_os: cisco.ios.ios
+      hosts:
+        edge01: {ansible_host: 10.0.0.11}
+        edge02: {ansible_host: 10.0.0.12}
+        # ...add edge03..edge20 the same way (one line each, or a host_vars file
+        #    when a switch needs per-device settings like uplink port or row).

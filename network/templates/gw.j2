@@ -1,0 +1,31 @@
+! {{ inventory_hostname }} — L3 gateway/router (Cisco IOS/IOS-XE)
+! Rendered from git. Do not edit on the device.
+hostname {{ inventory_hostname }}
+ip domain-name {{ domain_name }}
+!
+{% for ntp in ntp_servers %}
+ntp server {{ ntp }}
+{% endfor %}
+!
+interface {{ uplink_interface }}
+ description uplink-upstream
+ no switchport
+ ip address dhcp
+ no shutdown
+!
+ip route 0.0.0.0 0.0.0.0 {{ default_gateway }}
+!
+! First-hop redundancy: gw1 primary, gw2 backup (priority from inventory).
+{% for g in hsrp_groups %}
+interface Vlan{{ g.vlan }}
+ description participants-vlan{{ g.vlan }}
+ ip address {{ g.virtual_ip | regex_replace('\.1$', '.2' if inventory_hostname == 'gw1' else '.3') }} 255.255.255.0
+ standby {{ g.vlan }} ip {{ g.virtual_ip }}
+ standby {{ g.vlan }} priority {{ hsrp_priority }}
+ standby {{ g.vlan }} preempt
+{% endfor %}
+!
+banner login ^
+{{ banner }}^
+!
+end

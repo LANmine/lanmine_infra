@@ -1,0 +1,43 @@
+name: Validate network configs
+
+# Runs on every PR touching network/. Lints and renders the configs on a
+# GitHub-hosted runner — NO secrets, NO device access — so it is safe for PRs
+# from forks/volunteers.
+on:
+  pull_request:
+    paths:
+      - 'network/**'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: network
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Install tooling
+        run: python3 -m pip install --quiet ansible-core ansible-lint yamllint jinja2
+
+      - name: Install collections
+        run: ansible-galaxy collection install -r requirements.yml
+
+      - name: yamllint
+        run: yamllint .
+
+      - name: ansible-lint
+        run: ansible-lint || true   # start lenient; tighten over time
+
+      - name: Render intended configs (offline — no device access)
+        run: ansible-playbook playbooks/render.yml
+
+      - name: Show what was rendered
+        run: |
+          echo "Rendered configs:"; ls -1 intended/
+
+      # TODO: Containerlab test stage — spin up a virtual fabric, apply the
+      # rendered configs, and assert reachability before allowing merge.
