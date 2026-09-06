@@ -1,0 +1,21 @@
+services:
+  # CyberChef — GCHQ's "Cyber Swiss Army Knife": encoding/decoding, encryption,
+  # hashing, data analysis, regex etc., all in the browser. Prebuilt image
+  # (mpepping/cyberchef, pinned by digest), nginx serves on 8000 as uid 101.
+  cyberchef:
+    image: mpepping/cyberchef:latest@sha256:513734f9f4b9fd917845040983c86549b0c1741437a9c31cf010e70f07a9ad03
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.cyberchef.rule=Host(`cyber.tech.lanmine.no`)
+      - traefik.http.routers.cyberchef.service=cyberchef
+      - traefik.http.services.cyberchef.loadbalancer.server.port=8000
+
+networks:
+  traefik:
+    external: true
