@@ -1,0 +1,33 @@
+---
+# Deploy intended configs to the devices. Render first so intended/ is fresh.
+# Run with `--check --diff` for a dry-run (no changes) — that's what CI reviews.
+- import_playbook: render.yml
+
+- name: Deploy intended configs
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Push config (IOS)
+      cisco.ios.ios_config:
+        src: "{{ playbook_dir }}/../intended/{{ inventory_hostname }}.cfg"
+        backup: true
+        backup_options:
+          dir_path: "{{ playbook_dir }}/../backups"
+          filename: "{{ inventory_hostname }}.pre.cfg"
+      when: ansible_network_os == 'cisco.ios.ios'
+
+    - name: Push config (NX-OS)
+      cisco.nxos.nxos_config:
+        src: "{{ playbook_dir }}/../intended/{{ inventory_hostname }}.cfg"
+        backup: true
+        backup_options:
+          dir_path: "{{ playbook_dir }}/../backups"
+          filename: "{{ inventory_hostname }}.pre.cfg"
+      when: ansible_network_os == 'cisco.nxos.nxos'
+
+# For true source-of-truth enforcement (device forced to match git exactly, and
+# out-of-band changes reverted), switch to config-replace:
+#   IOS-XE : ios_config with `replace: config` + a full candidate config
+#   NX-OS  : nxos_config with `replace: config`
+# and pair it with commit-confirm / `reload in <n>` so a bad push self-reverts
+# and can't lock the runner out.

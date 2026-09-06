@@ -1,0 +1,7 @@
+---
+# edge01..edgeNN — participant access switches.
+role: edge
+uplink_interface: GigabitEthernet1/0/48     # trunk up to a core switch
+access_ports: "GigabitEthernet1/0/1 - 47"   # participant ports
+access_vlan: 10                             # participants VLAN by default
+uplink_allowed_vlans: "10,20,30,100"

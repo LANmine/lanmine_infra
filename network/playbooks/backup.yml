@@ -1,0 +1,25 @@
+---
+# Pull running-config from each device into backups/ — used by the drift job to
+# compare what's actually on the box against the intended config in git.
+- name: Backup running configs
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Get running-config (IOS)
+      cisco.ios.ios_command:
+        commands: "show running-config"
+      register: ios_run
+      when: ansible_network_os == 'cisco.ios.ios'
+
+    - name: Get running-config (NX-OS)
+      cisco.nxos.nxos_command:
+        commands: "show running-config"
+      register: nxos_run
+      when: ansible_network_os == 'cisco.nxos.nxos'
+
+    - name: Save running-config
+      ansible.builtin.copy:
+        content: "{{ (ios_run.stdout[0] if ansible_network_os == 'cisco.ios.ios' else nxos_run.stdout[0]) }}"
+        dest: "{{ playbook_dir }}/../backups/{{ inventory_hostname }}.running.cfg"
+        mode: "0644"
+      delegate_to: localhost

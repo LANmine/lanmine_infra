@@ -1,0 +1,21 @@
+---
+# Settings shared by every device.
+domain_name: lan.lanmine.no
+mgmt_vlan: 100
+mgmt_subnet: 10.0.0.0/24
+
+ntp_servers:
+  - 10.0.0.1
+dns_servers:
+  - 10.0.0.1
+
+# Participant / service VLANs used across the fabric.
+vlans:
+  10: participants
+  20: voice
+  30: admin
+  100: management
+
+banner: |
+  LANmine network device - managed by GitOps (github.com/LANmine/lanmine_infra).
+  Do not configure by hand; changes are overwritten. Authorised access only.

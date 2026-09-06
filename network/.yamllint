@@ -1,0 +1,12 @@
+---
+# Relaxed lint so the scaffold passes out of the box; tighten over time.
+extends: relaxed
+rules:
+  line-length: disable
+  comments:
+    min-spaces-from-content: 1
+  document-start: disable
+ignore: |
+  .collections/
+  intended/
+  backups/

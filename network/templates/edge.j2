@@ -1,0 +1,37 @@
+! {{ inventory_hostname }} — edge access switch (Cisco IOS)
+! Rendered from git. Do not edit on the device.
+hostname {{ inventory_hostname }}
+ip domain-name {{ domain_name }}
+!
+{% for id, name in vlans.items() %}
+vlan {{ id }}
+ name {{ name }}
+{% endfor %}
+!
+{% for ntp in ntp_servers %}
+ntp server {{ ntp }}
+{% endfor %}
+{% if snmp_community %}
+snmp-server community {{ snmp_community }} RO
+{% endif %}
+!
+interface Vlan{{ mgmt_vlan }}
+ description management
+ ip address {{ mgmt_ip | default(ansible_host) }} 255.255.255.0
+ no shutdown
+!
+interface range {{ access_ports }}
+ description participant
+ switchport mode access
+ switchport access vlan {{ access_vlan }}
+ spanning-tree portfast
+!
+interface {{ uplink_interface }}
+ description uplink-to-core
+ switchport mode trunk
+ switchport trunk allowed vlan {{ uplink_allowed_vlans }}
+!
+banner login ^
+{{ banner }}^
+!
+end

@@ -1,0 +1,6 @@
+---
+# Per-device overrides for edge01. Copy this file per switch that needs specifics.
+mgmt_ip: 10.0.0.11
+location: "Hall - row A"          # helps map a switch to a physical table row
+uplink_interface: GigabitEthernet1/0/48
+# access_vlan / access_ports inherit from group_vars/edge.yaml unless set here.

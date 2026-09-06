@@ -1,0 +1,14 @@
+---
+# Render intended configs from templates + vars into intended/.
+# Runs entirely locally (connection: local) — no device access, no secrets needed,
+# so it is safe to run on the hosted runner for PR validation.
+- name: Render intended configs
+  hosts: all
+  gather_facts: false
+  connection: local
+  tasks:
+    - name: Render {{ inventory_hostname }} ({{ role }})
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../templates/{{ role }}.j2"
+        dest: "{{ playbook_dir }}/../intended/{{ inventory_hostname }}.cfg"
+        mode: "0644"
