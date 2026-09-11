@@ -108,6 +108,12 @@ def main():
 
     for name, content in docs.items():
         fid = upload_file(token, f"lanmine-{name}.md", content)
+        # text extraction is async — wait until the file's content is populated
+        for _ in range(30):
+            f = api(f"/api/v1/files/{fid}", token)
+            if len((f.get("data") or {}).get("content") or "") > 0:
+                break
+            time.sleep(2)
         api(f"/api/v1/knowledge/{kid}/file/add", token, data={"file_id": fid})
         log("  added", name)
 
