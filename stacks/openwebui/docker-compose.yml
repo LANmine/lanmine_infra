@@ -1,0 +1,37 @@
+services:
+  # Open WebUI — self-hosted ChatGPT-style UI, pointed at the blixai
+  # OpenAI-compatible gateway (GLM / Qwen / DeepSeek). Prebuilt image pinned by
+  # digest. The API key stays server-side in this container's env (never the browser).
+  #
+  # Auth: login is on by default; new signups land as `pending` and must be
+  # approved by an admin before they can chat — so a public URL can't burn the
+  # API quota. The FIRST account created becomes the admin, so register yours
+  # immediately after deploy.
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main@sha256:1a6399d237dc392a2313e0ca826020b3fd5d22536357840eb63393d18dc8b924
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - OPENAI_API_BASE_URL=https://models.blixai.com/v1
+      - OPENAI_API_KEY=${OPENWEBUI_BLIX_KEY}
+      - ENABLE_OLLAMA_API=false
+      - DEFAULT_USER_ROLE=pending
+      - WEBUI_NAME=LANmine AI
+    volumes:
+      - data:/app/backend/data
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.openwebui.rule=Host(`chat.tech.lanmine.no`)
+      - traefik.http.routers.openwebui.service=openwebui
+      - traefik.http.services.openwebui.loadbalancer.server.port=8080
+
+volumes:
+  data:
+
+networks:
+  traefik:
+    external: true
