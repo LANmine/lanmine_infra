@@ -16,6 +16,7 @@ services:
       - OPENAI_API_BASE_URL=https://models.blixai.com/v1
       - OPENAI_API_KEY=${OPENWEBUI_BLIX_KEY}
       - ENABLE_OLLAMA_API=false
+      - ENABLE_API_KEY=true
       - DEFAULT_USER_ROLE=pending
       - WEBUI_NAME=LANmine AI
     volumes:
