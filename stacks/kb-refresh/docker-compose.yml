@@ -1,0 +1,59 @@
+services:
+  # Content-loader fetches the refresh script from the repo (raw, to avoid the
+  # GitHub API rate limit) into a named volume before the job starts.
+  content-loader:
+    image: curlimages/curl:latest
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    user: "0:0"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        mkdir -p /app
+        curl -sSf 'https://raw.githubusercontent.com/LANmine/lanmine_infra/main/stacks/kb-refresh/refresh.py' -o /app/refresh.py
+    volumes:
+      - app:/app
+
+  # Periodically re-scrapes lanmine.no and rebuilds Pandabot's knowledge base.
+  # Reaches Open WebUI on the internal network (no public exposure). Holds the
+  # Open WebUI admin login as env secrets (server-side only), same pattern as
+  # the metrics sidecar. Runs on start, then every REFRESH_INTERVAL seconds.
+  kb-refresh:
+    image: python:3.12-alpine
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      content-loader:
+        condition: service_completed_successfully
+    command:
+      - /bin/sh
+      - -c
+      - |
+        while true; do
+          python /app/refresh.py || echo "refresh failed, will retry next interval"
+          sleep "${REFRESH_INTERVAL:-604800}"
+        done
+    environment:
+      - OWUI_URL=http://open-webui:8080
+      - OWUI_EMAIL=${OWUI_EMAIL}
+      - OWUI_PASSWORD=${OWUI_PASSWORD}
+      - MODEL_ID=lanmine-panda
+      - COLLECTION_NAME=LANmine.no
+      - SITE_URL=https://lanmine.no
+      - REFRESH_INTERVAL=604800   # weekly
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - app:/app
+    networks:
+      - traefik
+
+volumes:
+  app:
+
+networks:
+  traefik:
+    external: true
