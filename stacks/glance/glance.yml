@@ -31,25 +31,23 @@ pages:
             location: Hvaler, Norway
             units: metric
 
+          # Reads the checks Gatus already runs, so stacks/gatus/config.yaml stays
+          # the single place a service is added. pageSize=1 trims each endpoint to
+          # its most recent result, which makes results.0 the current state.
           - type: custom-api
-            title: Ragnarok
+            title: Service status
             cache: 30s
-            url: http://ragnarok-metrics:8080/summary
+            url: https://status.tech.lanmine.no/api/v1/endpoints/statuses?page=1&pageSize=1
             template: |
-              {{ if .JSON.String "error" }}
-              <p style="color:#e5534b;font-size:.85em">metrics: {{ .JSON.String "error" }}</p>
-              {{ else }}
-              <div style="display:flex;justify-content:space-between;font-size:.8em;color:#8b98a5;margin-bottom:6px">
-                <span>{{ .JSON.Int "totals.count" }} running</span>
-                <span>{{ .JSON.Int "host.cpus" }} vCPU</span>
-                <span>{{ printf "%.0f" (.JSON.Float "totals.mem_mib") }}/{{ .JSON.Int "host.mem_total_mib" }} MiB</span>
-              </div>
-              {{ range .JSON.Array "containers" }}
+              {{ range .JSON.Array "" }}
               <div style="display:flex;justify-content:space-between;font-size:.85em;padding:1px 0">
                 <span>{{ .String "name" }}</span>
-                <span style="color:#8b98a5">{{ printf "%.1f" (.Float "mem_mib") }} MiB · {{ printf "%.1f" (.Float "cpu") }}%</span>
+                {{ if .Bool "results.0.success" }}
+                <span style="color:#4caf50">up</span>
+                {{ else }}
+                <span style="color:#e5534b">down</span>
+                {{ end }}
               </div>
-              {{ end }}
               {{ end }}
 
       - size: full
