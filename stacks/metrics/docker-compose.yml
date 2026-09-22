@@ -1,12 +1,18 @@
 services:
-  # Read-only metrics sidecar for the dashboard. Holds the Portainer token
-  # (server-side only, injected as a secret), polls the Docker API, and serves a
-  # sanitized, tokenless JSON summary on the internal network for Glance to render.
+  # Metrics sidecar for the dashboard. Holds the Portainer token (server-side
+  # only, injected as a secret), polls the Docker API, and serves a sanitized,
+  # tokenless JSON summary on the internal network for Glance to render.
   # No Traefik labels => never publicly reachable. The token never leaves this container.
   #
-  # Hardening (this is the only container holding a write-capable Portainer token,
-  # so it is locked down hard): images pinned by digest (no poisoned-tag pulls),
-  # runs non-root, all Linux caps dropped, no privilege escalation, read-only rootfs.
+  # The sidecar only reads, but PORTAINER_METRICS_TOKEN is NOT a restricted token.
+  # Portainer scopes rights per user, not per access token, so it carries the full
+  # rights of the issuing account — restart and delete on containers and stacks at
+  # this endpoint included. A genuinely read-only token would need a separate
+  # Portainer user, which requires admin on the instance; we do not have that, so
+  # the hardening below is the compensating control rather than an extra.
+  #
+  # Hardening: images pinned by digest (no poisoned-tag pulls), runs non-root,
+  # all Linux caps dropped, no privilege escalation, read-only rootfs.
   content-loader:
     image: curlimages/curl:latest@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777
     restart: "no"
@@ -37,7 +43,7 @@ services:
     security_opt:
       - no-new-privileges:true
     environment:
-      - PORTAINER_RO_TOKEN=${PORTAINER_RO_TOKEN}
+      - PORTAINER_METRICS_TOKEN=${PORTAINER_METRICS_TOKEN}
       - PORTAINER_URL=https://portainer.ragnarok.eslg.no
       - PORTAINER_ENDPOINT_ID=7
       - PYTHONDONTWRITEBYTECODE=1

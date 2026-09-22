@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
-"""Tiny read-only metrics sidecar for the LANmine dashboard.
+"""Tiny metrics sidecar for the LANmine dashboard.
 
 Holds the Portainer token (server-side only), polls the Docker API via Portainer
 on a background thread, and serves a sanitized, tokenless JSON summary. The HTTP
 handler never blocks on Portainer — it returns the last cached snapshot instantly.
 The token never leaves this container; the output contains no secrets.
+
+This sidecar only ever reads (/info, /containers/json, per-container stats), but
+the token itself is NOT read-only: Portainer scopes rights per user, not per
+token, so it carries the full rights of the account that issued it — including
+restarting and deleting containers and stacks on the endpoint. See the compose
+file for the hardening that exists because of this.
 """
 import json, os, ssl, time, threading, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-TOKEN = os.environ.get("PORTAINER_RO_TOKEN", "").strip()
+TOKEN = os.environ.get("PORTAINER_METRICS_TOKEN", "").strip()
 BASE = os.environ.get("PORTAINER_URL", "https://portainer.ragnarok.eslg.no").rstrip("/")
 EP = os.environ.get("PORTAINER_ENDPOINT_ID", "7")
 REFRESH = int(os.environ.get("REFRESH", "20"))
