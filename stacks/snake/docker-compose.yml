@@ -12,7 +12,7 @@ services:
       - -c
       - |
         set -e
-        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/snake/index.html?ref=main' -o /usr/share/nginx/html/index.html
+        curl -sSf 'https://raw.githubusercontent.com/LANmine/lanmine_infra/main/stacks/snake/index.html' -o /usr/share/nginx/html/index.html
     volumes:
       - site:/usr/share/nginx/html
 

@@ -13,10 +13,10 @@ services:
       - -c
       - |
         set -e
-        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/glance/glance.yml?ref=main' -o /app/config/glance.yml
+        curl -sSf 'https://raw.githubusercontent.com/LANmine/lanmine_infra/main/stacks/glance/glance.yml' -o /app/config/glance.yml
         mkdir -p /app/config/assets
-        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/glance/custom.css?ref=main' -o /app/config/assets/custom.css
-        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/glance/custom.js?ref=main' -o /app/config/assets/custom.js
+        curl -sSf 'https://raw.githubusercontent.com/LANmine/lanmine_infra/main/stacks/glance/custom.css' -o /app/config/assets/custom.css
+        curl -sSf 'https://raw.githubusercontent.com/LANmine/lanmine_infra/main/stacks/glance/custom.js' -o /app/config/assets/custom.js
     volumes:
       - config:/app/config
 

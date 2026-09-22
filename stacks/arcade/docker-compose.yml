@@ -15,9 +15,9 @@ services:
       - |
         set -e
         mkdir -p /usr/share/nginx/html/games
-        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/arcade/index.html?ref=main' -o /usr/share/nginx/html/index.html
-        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/arcade/games/keen1.jsdos?ref=main' -o /usr/share/nginx/html/games/keen1.jsdos
-        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/arcade/games/digger.jsdos?ref=main' -o /usr/share/nginx/html/games/digger.jsdos
+        curl -sSf 'https://raw.githubusercontent.com/LANmine/lanmine_infra/main/stacks/arcade/index.html' -o /usr/share/nginx/html/index.html
+        curl -sSf 'https://raw.githubusercontent.com/LANmine/lanmine_infra/main/stacks/arcade/games/keen1.jsdos' -o /usr/share/nginx/html/games/keen1.jsdos
+        curl -sSf 'https://raw.githubusercontent.com/LANmine/lanmine_infra/main/stacks/arcade/games/digger.jsdos' -o /usr/share/nginx/html/games/digger.jsdos
     volumes:
       - site:/usr/share/nginx/html
 

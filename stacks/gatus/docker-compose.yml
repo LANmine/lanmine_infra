@@ -13,8 +13,8 @@ services:
       - /bin/sh
       - -c
       - >-
-        curl -sSf -H 'Accept: application/vnd.github.raw'
-        'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/gatus/config.yaml?ref=main'
+        curl -sSf
+        'https://raw.githubusercontent.com/LANmine/lanmine_infra/main/stacks/gatus/config.yaml'
         -o /config/config.yaml
     volumes:
       - config:/config

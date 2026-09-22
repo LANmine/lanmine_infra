@@ -11,8 +11,8 @@ services:
       - /bin/sh
       - -c
       - >-
-        curl -sSf -H 'Accept: application/vnd.github.raw'
-        'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/countdown/index.html?ref=main'
+        curl -sSf
+        'https://raw.githubusercontent.com/LANmine/lanmine_infra/main/stacks/countdown/index.html'
         -o /usr/share/nginx/html/index.html
     volumes:
       - site:/usr/share/nginx/html

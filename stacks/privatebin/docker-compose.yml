@@ -15,7 +15,7 @@ services:
       - -c
       - |
         set -e
-        curl -sSf -H 'Accept: application/vnd.github.raw' 'https://api.github.com/repos/LANmine/lanmine_infra/contents/stacks/privatebin/conf.php?ref=main' -o /srv/cfg/conf.php
+        curl -sSf 'https://raw.githubusercontent.com/LANmine/lanmine_infra/main/stacks/privatebin/conf.php' -o /srv/cfg/conf.php
         chown -R 65534:82 /srv/data
         chmod 770 /srv/data
     volumes:
