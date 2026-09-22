@@ -18,12 +18,16 @@ endpoints:
       - "[RESPONSE_TIME] < 1000"
 
   # --- Services -------------------------------------------------------------
-  - name: example
-    group: services
-    url: "https://example.tech.lanmine.no"
-    interval: 60s
-    conditions:
-      - "[STATUS] == 200"
+  # Template — copy this block, uncomment it, and fill in name and url.
+  # Leave it commented out: an endpoint that points nowhere shows up as a
+  # permanent red check on the dashboard.
+  #
+  # - name: my-service
+  #   group: services
+  #   url: "https://my-service.tech.lanmine.no"
+  #   interval: 60s
+  #   conditions:
+  #     - "[STATUS] == 200"
 
   - name: it-tools
     group: services
