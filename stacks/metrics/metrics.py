@@ -16,7 +16,11 @@ import json, os, ssl, time, threading, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-TOKEN = os.environ.get("PORTAINER_METRICS_TOKEN", "").strip()
+# PORTAINER_RO_TOKEN is the old name for the same value. metrics.py is re-fetched
+# from main on every container start, but env only changes on a stack redeploy, so
+# accept both until a redeploy has landed and the old secret can be dropped.
+TOKEN = (os.environ.get("PORTAINER_METRICS_TOKEN")
+         or os.environ.get("PORTAINER_RO_TOKEN", "")).strip()
 BASE = os.environ.get("PORTAINER_URL", "https://portainer.ragnarok.eslg.no").rstrip("/")
 EP = os.environ.get("PORTAINER_ENDPOINT_ID", "7")
 REFRESH = int(os.environ.get("REFRESH", "20"))

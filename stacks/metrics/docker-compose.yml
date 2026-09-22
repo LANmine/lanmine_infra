@@ -44,6 +44,8 @@ services:
       - no-new-privileges:true
     environment:
       - PORTAINER_METRICS_TOKEN=${PORTAINER_METRICS_TOKEN}
+      # Old name, kept until a redeploy has landed; drop it and the repo secret after.
+      - PORTAINER_RO_TOKEN=${PORTAINER_RO_TOKEN}
       - PORTAINER_URL=https://portainer.ragnarok.eslg.no
       - PORTAINER_ENDPOINT_ID=7
       - PYTHONDONTWRITEBYTECODE=1
