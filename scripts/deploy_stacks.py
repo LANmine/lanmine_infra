@@ -17,7 +17,8 @@ For each ${VAR} a compose file references, this script looks for a matching
 **GitHub Actions secret** of the same name and passes it to Portainer as a stack
 environment variable (stored on the server, never written into the repo).
 So the flow is: apprentice references ${VAR} in the compose and says "needs VAR";
-a maintainer adds a repo secret named VAR in GitHub. No workflow edits needed.
+a maintainer adds a repo secret named VAR in GitHub and adds VAR to INJECTABLE
+below and to the env block of both deploy workflows.
 
 Secret names are a single global namespace, so use unique, descriptive names
 (e.g. UPTIME_ADMIN_PASSWORD, not just PASSWORD) to avoid two stacks colliding.
@@ -28,8 +29,7 @@ Configuration comes from environment variables (set in the workflow):
   PORTAINER_ENDPOINT_ID  the Docker environment id (default: 7)
   REPO_URL               https://github.com/LANmine/lanmine_infra
   GIT_REF                git ref to deploy (default: refs/heads/main)
-  SECRETS_JSON           JSON object of all GitHub secrets: {"NAME": "value", ...}
-                         (produced in the workflow with ${{ toJSON(secrets) }})
+  plus one variable per name in INJECTABLE, each carrying that secret's value
 """
 import json
 import os
@@ -45,11 +45,18 @@ ENDPOINT = int(os.environ.get("PORTAINER_ENDPOINT_ID", "7"))
 REPO_URL = os.environ["REPO_URL"]
 GIT_REF = os.environ.get("GIT_REF", "refs/heads/main")
 
-# All GitHub secrets, as a name->value map. Empty when run locally.
-try:
-    ALL_SECRETS = json.loads(os.environ.get("SECRETS_JSON", "") or "{}")
-except json.JSONDecodeError:
-    ALL_SECRETS = {}
+# The secrets a stack is allowed to reference. The workflow passes exactly these
+# through as environment variables, rather than handing the runner every secret
+# the repo and org have (CodeQL: actions/excessive-secrets-exposure). Adding one
+# is deliberate: a line here and a line in each deploy workflow.
+INJECTABLE = {
+    "OPENWEBUI_BLIX_KEY",
+    "OWUI_EMAIL",
+    "OWUI_PASSWORD",
+}
+
+# name -> value for the ones actually set. Empty when run locally.
+ALL_SECRETS = {n: os.environ[n] for n in INJECTABLE if os.environ.get(n)}
 
 # Never inject these into a service, even if a compose file references them.
 RESERVED = {"PORTAINER_API_KEY", "GITHUB_TOKEN"}
@@ -84,6 +91,14 @@ def existing_stacks():
     if status != 200:
         sys.exit(f"Could not list stacks (HTTP {status}): {data}")
     return {s["Name"]: s for s in data if s.get("EndpointId") == ENDPOINT}
+
+
+def live_env(sid):
+    """The env a stack is currently running with, as name -> value."""
+    status, data = api("GET", f"/api/stacks/{sid}")
+    if status != 200 or not isinstance(data, dict):
+        return {}
+    return {e["name"]: e.get("value") or "" for e in (data.get("Env") or [])}
 
 
 def env_for(compose_path):
@@ -121,6 +136,20 @@ def main(names):
 
         if name in by_name:
             sid = by_name[name]["Id"]
+
+            # A deploy replaces the stack env wholesale, so a variable we cannot
+            # supply is not left alone — it is erased. Refuse rather than quietly
+            # take a running service's credential away.
+            running = live_env(sid) if missing else {}
+            clobbered = [n for n in missing if running.get(n)]
+            if clobbered:
+                failures += 1
+                print(f"✗ {name}: REFUSING to deploy — no secret for "
+                      f"{', '.join(clobbered)}, but the running stack has a value "
+                      f"for each. Deploying would blank them. Add the repo "
+                      f"secret(s) and the name(s) to INJECTABLE first.")
+                continue
+
             status, resp = api(
                 "PUT",
                 f"/api/stacks/{sid}/git/redeploy?endpointId={ENDPOINT}",

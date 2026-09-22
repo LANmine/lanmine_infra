@@ -50,10 +50,14 @@ jobs:
           PORTAINER_ENDPOINT_ID: '7'
           REPO_URL: https://github.com/LANmine/lanmine_infra
           GIT_REF: refs/heads/main
-          # All repo secrets as a name->value map, so a stack can reference ${VAR}
-          # in its compose and have the matching secret injected automatically.
-          # Adding a new secret needs NO change to this file.
-          SECRETS_JSON: ${{ toJSON(secrets) }}
+          # The secrets a stack may reference, listed one by one. toJSON(secrets)
+          # would hand the runner every repo and org secret instead, including
+          # ones no stack needs (CodeQL: actions/excessive-secrets-exposure).
+          # Adding a secret means a line here and a name in INJECTABLE in
+          # scripts/deploy_stacks.py.
+          OPENWEBUI_BLIX_KEY: ${{ secrets.OPENWEBUI_BLIX_KEY }}
+          OWUI_EMAIL: ${{ secrets.OWUI_EMAIL }}
+          OWUI_PASSWORD: ${{ secrets.OWUI_PASSWORD }}
           STACK_NAMES: ${{ steps.changed.outputs.names }}
         run: |
           # Names come from folder names in the repo — validate before use so a

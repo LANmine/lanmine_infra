@@ -54,7 +54,11 @@ jobs:
           PORTAINER_ENDPOINT_ID: '7'
           REPO_URL: https://github.com/LANmine/lanmine_infra
           GIT_REF: refs/heads/main
-          SECRETS_JSON: ${{ toJSON(secrets) }}
+          # Kept in step with deploy.yml — see the note there. Listing the
+          # secrets one by one avoids handing the runner all of them.
+          OPENWEBUI_BLIX_KEY: ${{ secrets.OPENWEBUI_BLIX_KEY }}
+          OWUI_EMAIL: ${{ secrets.OWUI_EMAIL }}
+          OWUI_PASSWORD: ${{ secrets.OWUI_PASSWORD }}
           STACK_NAMES: ${{ steps.pick.outputs.names }}
         run: |
           for n in $STACK_NAMES; do
