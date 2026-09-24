@@ -30,7 +30,11 @@ endpoints:
   #     - "[STATUS] == 200"
 
   - name: netbox
+    group: services
     url: "https://netbox.tech.lanmine.no"
+    interval: 60s
+    conditions:
+      - "[STATUS] == 200"
   - name: it-tools
     group: services
     url: "https://tools.tech.lanmine.no"
