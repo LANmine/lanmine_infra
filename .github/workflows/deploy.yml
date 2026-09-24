@@ -58,6 +58,9 @@ jobs:
           OPENWEBUI_BLIX_KEY: ${{ secrets.OPENWEBUI_BLIX_KEY }}
           OWUI_EMAIL: ${{ secrets.OWUI_EMAIL }}
           OWUI_PASSWORD: ${{ secrets.OWUI_PASSWORD }}
+          NETBOX_SECRET_KEY: ${{ secrets.NETBOX_SECRET_KEY }}
+          NETBOX_DB_PASSWORD: ${{ secrets.NETBOX_DB_PASSWORD }}
+          NETBOX_SUPERUSER_PASSWORD: ${{ secrets.NETBOX_SUPERUSER_PASSWORD }}
           STACK_NAMES: ${{ steps.changed.outputs.names }}
         run: |
           # Names come from folder names in the repo — validate before use so a

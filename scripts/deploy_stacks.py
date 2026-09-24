@@ -53,6 +53,9 @@ INJECTABLE = {
     "OPENWEBUI_BLIX_KEY",
     "OWUI_EMAIL",
     "OWUI_PASSWORD",
+    "NETBOX_SECRET_KEY",
+    "NETBOX_DB_PASSWORD",
+    "NETBOX_SUPERUSER_PASSWORD",
 }
 
 # name -> value for the ones actually set. Empty when run locally.

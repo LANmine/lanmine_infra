@@ -1,0 +1,131 @@
+services:
+  # NetBox — network source of truth and documentation.
+  #
+  # Public read-only: anyone on netbox.tech.lanmine.no can browse devices,
+  # VLANs, IP addresses and cables without logging in (LOGIN_REQUIRED=False).
+  # Admin login is required to create or change anything.
+  #
+  # First deploy: after the stack is running, the superuser account is created
+  # automatically using NETBOX_SUPERUSER_* below. Log in at /login/.
+  #
+  # Secrets required (GitHub Actions secrets + INJECTABLE in deploy_stacks.py):
+  #   NETBOX_SECRET_KEY          — random 50+ char Django secret key
+  #   NETBOX_DB_PASSWORD         — postgres password (internal only)
+  #   NETBOX_SUPERUSER_PASSWORD  — initial admin password
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - POSTGRES_DB=netbox
+      - POSTGRES_USER=netbox
+      - POSTGRES_PASSWORD=${NETBOX_DB_PASSWORD}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis:/data
+    networks:
+      - internal
+
+  netbox:
+    image: netboxcommunity/netbox:latest
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - DB_HOST=postgres
+      - DB_NAME=netbox
+      - DB_USER=netbox
+      - DB_PASSWORD=${NETBOX_DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_CACHE_HOST=redis
+      - REDIS_CACHE_PORT=6379
+      - SECRET_KEY=${NETBOX_SECRET_KEY}
+      - ALLOWED_HOSTS=netbox.tech.lanmine.no
+      - LOGIN_REQUIRED=False         # anonymous read-only access
+      - CSRF_TRUSTED_ORIGINS=https://netbox.tech.lanmine.no
+      - SUPERUSER_NAME=admin
+      - SUPERUSER_EMAIL=tech@lanmine.no
+      - SUPERUSER_PASSWORD=${NETBOX_SUPERUSER_PASSWORD}
+    volumes:
+      - media:/opt/netbox/netbox/media
+      - static:/opt/netbox/netbox/static
+    networks:
+      - internal
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.netbox.rule=Host(`netbox.tech.lanmine.no`)
+      - traefik.http.routers.netbox.service=netbox
+      - traefik.http.services.netbox.loadbalancer.server.port=8080
+
+  netbox-worker:
+    image: netboxcommunity/netbox:latest
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      - netbox
+    command: /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py rqworker
+    environment:
+      - DB_HOST=postgres
+      - DB_NAME=netbox
+      - DB_USER=netbox
+      - DB_PASSWORD=${NETBOX_DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_CACHE_HOST=redis
+      - REDIS_CACHE_PORT=6379
+      - SECRET_KEY=${NETBOX_SECRET_KEY}
+    volumes:
+      - media:/opt/netbox/netbox/media
+    networks:
+      - internal
+
+  netbox-housekeeping:
+    image: netboxcommunity/netbox:latest
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      - netbox
+    command: /opt/netbox/housekeeping.sh
+    environment:
+      - DB_HOST=postgres
+      - DB_NAME=netbox
+      - DB_USER=netbox
+      - DB_PASSWORD=${NETBOX_DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_CACHE_HOST=redis
+      - REDIS_CACHE_PORT=6379
+      - SECRET_KEY=${NETBOX_SECRET_KEY}
+    networks:
+      - internal
+
+volumes:
+  postgres:
+  redis:
+  media:
+  static:
+
+networks:
+  internal:
+  traefik:
+    external: true
