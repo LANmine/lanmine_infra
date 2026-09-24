@@ -29,6 +29,8 @@ endpoints:
   #   conditions:
   #     - "[STATUS] == 200"
 
+  - name: netbox
+    url: "https://netbox.tech.lanmine.no"
   - name: it-tools
     group: services
     url: "https://tools.tech.lanmine.no"
