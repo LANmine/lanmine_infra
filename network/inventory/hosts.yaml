@@ -1,6 +1,13 @@
 ---
 # Device inventory. mgmt IPs live on the management VLAN; the self-hosted runner
 # reaches them over that VLAN. Credentials come from env (Actions secrets), never here.
+#
+# Two segments are fully real today:
+#   oob     — ISR 1111, the year-round OOB management router (10.0.10.0/24)
+#   sw_mgmt — managed switches on VLAN 20 (10.0.20.0/24, no internet)
+#
+# The production LAN event topology (gw/core/edge) is scaffolded below with
+# placeholder IPs until the ISP hands off and hardware is staged for LM42.
 all:
   vars:
     ansible_connection: ansible.netcommon.network_cli
@@ -8,31 +15,50 @@ all:
     ansible_password: "{{ lookup('env', 'NET_PASSWORD') }}"
     snmp_community: "{{ lookup('env', 'NET_SNMP_COMMUNITY') | default('', true) }}"
   children:
-    gw:
-      vars:
-        ansible_network_os: cisco.ios.ios
-      hosts:
-        # GW1 is reached via its GigabitEthernet0/0 Mgmt-vrf address — see
-        # host_vars/gw1.yaml (mgmt_ip). GW2 still placeholder until it gets specifics.
-        gw1: {ansible_host: 10.0.0.2, hsrp_priority: 110}   # primary
-        gw2: {ansible_host: 10.0.0.3, hsrp_priority: 90}    # backup
-    core:
-      vars:
-        ansible_network_os: cisco.nxos.nxos
-      hosts:
-        core1: {ansible_host: 10.0.0.4}
-        core2: {ansible_host: 10.0.0.5}
-    edge:
-      vars:
-        ansible_network_os: cisco.ios.ios
-      hosts:
-        edge01: {ansible_host: 10.0.0.11}
-        edge02: {ansible_host: 10.0.0.12}
-        # ...add edge03..edge20 the same way (one line each, or a host_vars file
-        #    when a switch needs per-device settings like uplink port or row).
+
+    # ── Real year-round devices ───────────────────────────────────────────────
+
     oob:
       vars:
         ansible_network_os: cisco.ios.ios
       hosts:
-        # Out-of-band management router for the garage mgmt LAN (10.0.10.0/24).
-        isr1111: {ansible_host: 10.0.10.1}
+        isr1111:
+          ansible_host: 10.0.10.1   # Vlan10 SVI, always reachable via mgmt LAN
+
+    sw_mgmt:
+      vars:
+        ansible_network_os: cisco.ios.ios
+      hosts:
+        sw01:
+          ansible_host: 10.0.20.2   # Gi0/0 Mgmt-vrf, VLAN 20
+
+    # ── LAN event topology (LM42 / future) ───────────────────────────────────
+    # IPs are placeholders — replace with real values once the ISP hands off
+    # and devices are assigned addresses in NetBox.
+
+    gw:
+      vars:
+        ansible_network_os: cisco.ios.ios
+      hosts:
+        gw1:
+          ansible_host: 10.0.0.2    # TODO: real Mgmt-vrf IP (9300 Gi0/0)
+          hsrp_priority: 110        # primary — holds the ISP SFP
+        gw2:
+          ansible_host: 10.0.0.3    # TODO: real Mgmt-vrf IP
+          hsrp_priority: 90         # standby
+
+    core:
+      vars:
+        ansible_network_os: cisco.nxos.nxos
+      hosts:
+        core1: {ansible_host: 10.0.0.4}   # TODO: real IP (Nexus mgmt0)
+        core2: {ansible_host: 10.0.0.5}
+
+    edge:
+      vars:
+        ansible_network_os: cisco.ios.ios
+      hosts:
+        edge01: {ansible_host: 10.0.0.11}  # TODO: real IP
+        edge02: {ansible_host: 10.0.0.12}
+        # edge03..edgeNN: add one line per switch (or a host_vars file when a
+        # switch needs per-device settings like uplink port or row number).

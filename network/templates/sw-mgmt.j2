@@ -1,0 +1,56 @@
+! {{ inventory_hostname }} — management switch (Cisco IOS-XE Catalyst 3650)
+! Rendered from git. Do not edit on the device.
+!
+! Role: switch management plane. Sits on VLAN 20 (sw-mgmt, no internet).
+! Ansible reaches it via GigabitEthernet0/0 (Mgmt-vrf, 10.0.20.x).
+! Data-plane VLANs are configured separately once the LAN topology is finalised.
+!
+hostname {{ inventory_hostname }}
+ip domain-name {{ domain_name }}
+ip routing
+!
+{% for ntp in ntp_servers %}
+ntp server {{ ntp }}
+{% endfor %}
+!
+{% if snmp_community %}
+snmp-server community {{ snmp_community }} RO
+{% endif %}
+!
+no ip http server
+no ip http secure-server
+!
+{% if lookup('env', 'NET_USER') %}
+enable secret {{ lookup('env', 'NET_PASSWORD') }}
+username {{ lookup('env', 'NET_USER') }} privilege 15 secret {{ lookup('env', 'NET_PASSWORD') }}
+{% endif %}
+!
+! Management VRF — Ansible reach path, no internet, separate from data plane.
+vrf definition Mgmt-vrf
+ address-family ipv4
+ exit-address-family
+!
+interface GigabitEthernet0/0
+ description oob-management
+ vrf forwarding Mgmt-vrf
+ ip address {{ mgmt_ip }} 255.255.255.0
+ no shutdown
+!
+ip route vrf Mgmt-vrf 0.0.0.0 0.0.0.0 {{ mgmt_gateway }}
+!
+ip ssh version 2
+!
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+ transport input all
+ stopbits 1
+!
+line vty 0 4
+ transport input ssh
+ login local
+!
+banner login ^
+{{ banner }}^
+!
+end
