@@ -1,0 +1,8 @@
+---
+# Per-device values for isr1111 — the OOB/management router (ISR 1111).
+# Role-level settings live in group_vars/oob.yaml; this file holds device facts.
+#
+# Device facts:
+#   - console on ACM serial port4 (SSH 3004), 9600 8N1
+#   - Cellular0/1/0 is the only WAN uplink (LTE, DHCP from carrier)
+#   - Gi0/1/0 faces the mgmt LAN (10.0.10.1/24); placeholder=.2, ACM=.3

@@ -1,0 +1,67 @@
+! {{ inventory_hostname }} — OOB/management router (Cisco IOS-XE ISR 1111)
+! Rendered from git. Do not edit on the device.
+hostname {{ inventory_hostname }}
+ip domain-name {{ domain_name }}
+ip routing
+!
+{% for ntp in (ntp_servers | default(['pool.ntp.org'])) %}
+ntp server {{ ntp }}
+{% endfor %}
+!
+{% if snmp_community %}
+snmp-server community {{ snmp_community }} RO
+{% endif %}
+!
+no ip http server
+no ip http secure-server
+!
+! Local management account — credentials are injected from env at deploy time,
+! never rendered into git. (Omits the line on the offline render, where the
+! env vars are absent; the deploy runner renders with them.)
+{% if lookup('env', 'NET_USER') %}
+username {{ lookup('env', 'NET_USER') }} privilege 15 secret {{ lookup('env', 'NET_PASSWORD') }}
+{% endif %}
+!
+! Management access to vty is limited to the OOB mgmt LAN.
+ip access-list standard MGMT_ACL
+ permit {{ oob_network }} 0.0.0.255
+!
+! DHCP for the mgmt LAN. .1-.5 are reserved infra (router/placeholder/ACM);
+! the offer range is .10-.50, so everything outside it is excluded too.
+ip dhcp excluded-address {{ oob_dhcp_excluded | join('\nip dhcp excluded-address ') }}
+ip dhcp pool {{ oob_dhcp_pool }}
+ network {{ oob_subnet }}
+ default-router {{ oob_gateway }}
+ dns-server {{ oob_dns }}
+!
+! NAT overload: mgmt LAN -> LTE uplink.
+ip nat inside source list NAT_ACL interface Cellular0/1/0 overload
+ip access-list standard NAT_ACL
+ permit {{ oob_network }} 0.0.0.255
+!
+interface Cellular0/1/0
+ description LTE-uplink
+ ip address dhcp
+ ip nat outside
+ no cdp enable
+ no shutdown
+!
+interface GigabitEthernet0/1/0
+ description mgmt-lan
+ ip address {{ oob_gateway }} 255.255.255.0
+ ip nat inside
+ no shutdown
+!
+ip route 0.0.0.0 0.0.0.0 Cellular0/1/0
+!
+ip ssh version 2
+!
+line vty 0 4
+ access-class MGMT_ACL in
+ transport input ssh
+ login local
+!
+banner login ^
+{{ banner }}^
+!
+end
