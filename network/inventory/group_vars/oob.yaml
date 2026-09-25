@@ -1,0 +1,29 @@
+---
+# isr1111 — OOB/management router (Cisco ISR 1111), NOT the production gateway.
+# Dedicated out-of-band role: manages the garage mgmt LAN 10.0.10.0/24 over an
+# LTE-only uplink. Group vars below are the ISR-specific settings.
+role: oob
+
+# The render playbook picks templates/{template_name}.j2; the ISR keeps a
+# device-specific template even though its role/group is "oob".
+template_name: isr1111
+
+# OOB LAN 10.0.10.0/24 ("site-mgmt") — real, verified values:
+#   .1 ISR 1111 (this box), .2 placeholder, .3 Opengear ACM.
+oob_subnet: 10.0.10.0/24
+oob_network: 10.0.10.0
+oob_gateway: 10.0.10.1
+oob_dns: 1.1.1.1
+oob_dhcp_pool: MGMT
+# Reserved infra occupies .1-.5; DHCP offers only .10-.50, so the rest is
+# excluded to keep the offer range tight.
+oob_dhcp_excluded:
+  - "10.0.10.1 10.0.10.9"
+  - "10.0.10.51 10.0.10.254"
+
+# NTP/DNS: all.yaml points at 10.0.0.1 (the production mgmt VLAN) which is not
+# reachable from the OOB segment — use public servers over the LTE uplink.
+ntp_servers:
+  - pool.ntp.org
+dns_servers:
+  - 1.1.1.1

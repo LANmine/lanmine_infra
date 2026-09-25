@@ -12,6 +12,8 @@ all:
       vars:
         ansible_network_os: cisco.ios.ios
       hosts:
+        # GW1 is reached via its GigabitEthernet0/0 Mgmt-vrf address — see
+        # host_vars/gw1.yaml (mgmt_ip). GW2 still placeholder until it gets specifics.
         gw1: {ansible_host: 10.0.0.2, hsrp_priority: 110}   # primary
         gw2: {ansible_host: 10.0.0.3, hsrp_priority: 90}    # backup
     core:
@@ -28,3 +30,9 @@ all:
         edge02: {ansible_host: 10.0.0.12}
         # ...add edge03..edge20 the same way (one line each, or a host_vars file
         #    when a switch needs per-device settings like uplink port or row).
+    oob:
+      vars:
+        ansible_network_os: cisco.ios.ios
+      hosts:
+        # Out-of-band management router for the garage mgmt LAN (10.0.10.0/24).
+        isr1111: {ansible_host: 10.0.10.1}

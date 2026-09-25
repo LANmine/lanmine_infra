@@ -1,0 +1,9 @@
+---
+# Per-device values for gw1 — the primary production edge gateway (Catalyst 9300).
+# Role-level settings live in group_vars/gw.yaml; per-device values below.
+#
+# TODO: replace the placeholder addresses with real ones once the ISP hands off
+# and the fabric is registered in NetBox (source of truth for IP allocations).
+mgmt_ip: 10.0.0.2        # GigabitEthernet0/0 in Mgmt-vrf — the Ansible reach path
+isp_address: 203.0.113.2/30   # TenGigabitEthernet1/1/1 (holds the ISP optical module)
+isp_gateway: 203.0.113.1      # ISP next-hop (203.0.113.x is TEST-NET-3, placeholder)
