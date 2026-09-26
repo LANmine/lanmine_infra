@@ -2,8 +2,8 @@
 # Settings shared by every device.
 domain_name: lan.lanmine.no
 
-# NTP default — overridden in group_vars/oob.yaml and sw_mgmt.yaml because
-# the production mgmt VLAN (10.0.0.x) is not reachable from those segments.
+# NTP default — overridden in group_vars/oob.yaml because the OOB segment is
+# off the production fabric and cannot reach the prod NTP.
 ntp_servers:
   - 10.0.0.1      # TODO: replace with real production mgmt server once it exists
 dns_servers:
@@ -17,7 +17,6 @@ dns_servers:
 #   VLAN 10 — participants: receives the ISP /24 directly, no NAT.
 #   VLAN 20 — AP management: NATted behind ISR LTE (private, no public IP).
 #   VLAN 30 — infra/staff: restricted, no participant access.
-#   VLAN 100 — production management: gateway/core/edge management SVI.
 vlans:
   10: participants
   20: ap-management
