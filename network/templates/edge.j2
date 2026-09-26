@@ -28,7 +28,17 @@ interface range {{ access_ports }}
  description participant
  switchport mode access
  switchport access vlan {{ access_vlan }}
+ ! Static public IPs on the participant VLAN — DHCP reservations are not
+ ! possible logistically, so there are no snooping bindings to validate and
+ ! DHCP snooping / DAI / IPSG are deliberately NOT configured (they would
+ ! block static clients). Port-security + storm-control are the layer here.
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
  spanning-tree portfast
+ spanning-tree bpduguard enable
+ storm-control broadcast level 1
 !
 interface {{ uplink_interface }}
  description uplink-to-core
