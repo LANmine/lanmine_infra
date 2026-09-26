@@ -14,6 +14,12 @@ ansible_become_password: "{{ lookup('env', 'NET_PASSWORD') }}"
 isp_address: 203.0.113.2/30
 isp_gateway: 203.0.113.1
 mgmt_ip: 10.0.20.2   # OOB router VLAN 20 (gw-mgmt); real value per host in host_vars
+# Participant public /24 — the block the ISP statically routes to gw1. Placeholder
+# 192.0.2.0/24 (TEST-NET-1). This is the single swap point for the real ISP
+# allocation; it feeds the PARTICIPANT-INGRESS ACL in gw.j2. Participants use
+# static public IPs (DHCP reservations are not possible logistically), so the
+# mask is assumed /24 today — parameterize it when the real block lands.
+participant_subnet: 192.0.2.0/24
 # Interface names vary by hardware — override in host_vars.
 isp_interface: TenGigabitEthernet1/1/1
 core1_interface: TenGigabitEthernet1/1/2

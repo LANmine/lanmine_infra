@@ -65,8 +65,24 @@ interface Vlan{{ g.vlan }}
  standby {{ g.vlan }} priority {{ hsrp_priority }}
  standby {{ g.vlan }} preempt
  no shutdown
+ ! Participant ingress hardening on a public /24: uRPF strict drops any packet
+ ! whose source is not reachable back through this SVI (anti-spoof — the main
+ ! line), and the ACL keeps participant traffic out of private/OOB space.
+ ip verify unicast source reachable-via rx
+ ip access-group PARTICIPANT-INGRESS in
 {% endfor %}
 !
+! Participant ingress protection. Deny private/OOB destinations (10.0.10.0/24
+! site-mgmt, 10.0.20.0/24 gw-mgmt, RFC1918) with logging; permit everything
+! else. The live participant block is participant_subnet in gw.yaml.
+{% if participant_subnet is defined %}
+ip access-list extended PARTICIPANT-INGRESS
+ deny ip any 10.0.0.0 0.255.255.255 log
+ deny ip any 172.16.0.0 0.15.255.255 log
+ deny ip any 192.168.0.0 0.0.255.255 log
+ permit ip any any
+!
+{% endif %}
 ! No in-band management SVI. Management is OOB-only: Gi0/0 (Mgmt-vrf) carries
 ! {{ mgmt_ip }} to the OOB router, which is the gateway. The legacy VLAN 100
 ! (prod-management) was retired because it rendered this same address as a
