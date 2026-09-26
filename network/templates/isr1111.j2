@@ -7,7 +7,7 @@
 !   VLAN 20  sw-mgmt    (10.0.20.0/24)  — switch management, no internet
 !
 hostname {{ inventory_hostname }}
-ip domain-name {{ domain_name }}
+ip domain name {{ domain_name }}
 ip routing
 !
 {% for ntp in (ntp_servers | default(['pool.ntp.org'])) %}

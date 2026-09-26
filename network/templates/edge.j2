@@ -1,7 +1,7 @@
 ! {{ inventory_hostname }} — edge access switch (Cisco IOS)
 ! Rendered from git. Do not edit on the device.
 hostname {{ inventory_hostname }}
-ip domain-name {{ domain_name }}
+ip domain name {{ domain_name }}
 !
 {% for id, name in vlans.items() %}
 vlan {{ id }}
