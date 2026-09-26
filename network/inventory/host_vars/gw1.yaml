@@ -1,18 +1,21 @@
 ---
-# gw1 — Cisco Catalyst WS-C3650-48FQM (primary production edge gateway).
-# SN: FDO2204V0QU, IOS-XE 16.6.7, IP Base licence.
+# gw1 — Cisco Catalyst C9300-48P (primary production edge gateway).
+# SN: FOC2615YDG9, IOS-XE 17.5.1, network-advantage + dna-advantage licence.
 # Console: ACM port1 (SSH 3001, ogconsole 1), 9600 8N1.
 # Management: GigabitEthernet0/0 in Mgmt-vrf — Ansible reach path.
 #
 # Hardware:
 #   48x GigabitEthernet1/0/1-48  (1G copper, participant access)
-#    4x TenGigabitEthernet1/1/1-4 (10G SFP+, ISP uplink + core uplinks)
+#   12x TenGigabitEthernet1/1/1-12 (10G SFP+, ISP uplink + core uplinks)
+#    4x FortyGigabitEthernet  (uplink module slots, model dependent)
 #
-# Constraints: no NAT at any licence level. BGP requires IP Services (unit is IP Base).
+# Dedicated GigabitEthernet0/0 in Mgmt-vrf (out-of-band, separate from data plane).
+# NAT available with network-advantage licence.
+# BGP available.
 #
 mgmt_ip: 10.0.20.2        # GigabitEthernet0/0 in Mgmt-vrf
 
-# ISP uplink — TenGigabitEthernet1/1/1.
+# ISP uplink — 10G SFP+ port.
 # TODO: replace with real linknett /30 once ISP hands off for LM42.
 isp_address: 203.0.113.2/30
 isp_gateway: 203.0.113.1
