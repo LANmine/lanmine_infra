@@ -15,9 +15,10 @@
 #
 mgmt_ip: 10.0.20.2        # GigabitEthernet0/0 in Mgmt-vrf
 
-# ISP uplink — FortyGig module port (C9300-48P uplink module).
-# TODO: replace with real linknett /30 once ISP hands off for LM42.
-isp_interface: FortyGigabitEthernet1/1/1
+# ISP uplink — verified on device: TenGigabitEthernet1/1/1 already has 203.0.113.2/30.
+# FortyGigabitEthernet1/1/1 is present but unused.
+# TODO: replace ISP address with real linknett /30 once ISP hands off for LM42.
+isp_interface: TenGigabitEthernet1/1/1
 isp_address: 203.0.113.2/30
 isp_gateway: 203.0.113.1
 

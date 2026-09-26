@@ -45,13 +45,9 @@ ip dhcp pool {{ oob_dhcp_pool }}
  default-router {{ oob_gateway }}
  dns-server {{ oob_dns }}
 !
-! LTE WAN — DHCP from carrier; NAT outside.
-interface Cellular0/2/0
- description LTE-uplink
- ip address dhcp
- ip nat outside
- no cdp enable
- no shutdown
+! LTE WAN (Cellular0/2/0) — managed by the modem driver; do not touch here.
+! The interface uses 'ip address negotiated' + dialer config set by the modem
+! firmware. Ansible must not reconfigure it or the cellular link will drop.
 !
 ! Integrated switch port assignments.
 ! Gi0/1/0 — placeholder (10.0.10.2, site-mgmt)
