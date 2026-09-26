@@ -41,7 +41,7 @@ ip access-list standard MGMT_ACL
 ! DHCP for site-mgmt (.1-.9 and .51-.254 reserved; only .10-.50 offered).
 ip dhcp excluded-address {{ oob_dhcp_excluded | join('\nip dhcp excluded-address ') }}
 ip dhcp pool {{ oob_dhcp_pool }}
- network {{ oob_subnet }}
+ network {{ oob_subnet | ansible.utils.ipaddr('network') }} {{ oob_subnet | ansible.utils.ipaddr('netmask') }}
  default-router {{ oob_gateway }}
  dns-server {{ oob_dns }}
 !

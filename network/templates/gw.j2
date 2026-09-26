@@ -35,7 +35,7 @@ interface GigabitEthernet0/0
 interface TenGigabitEthernet1/1/1
  description uplink-isp
  no switchport
- ip address {{ isp_address }}
+ ip address {{ isp_address | ansible.utils.ipaddr("address") }} {{ isp_address | ansible.utils.ipaddr("netmask") }}
  no shutdown
 !
 ip route 0.0.0.0 0.0.0.0 {{ isp_gateway }}
