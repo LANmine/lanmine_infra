@@ -29,20 +29,15 @@ jobs:
       NET_USER: ${{ secrets.NET_USER }}
       NET_PASSWORD: ${{ secrets.NET_PASSWORD }}
       NET_SNMP_COMMUNITY: ${{ secrets.NET_SNMP_COMMUNITY }}
+      PATH: /home/placeholder/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Install tooling
-        run: |
-          # ansible-core is pre-installed via pipx on the self-hosted runner.
-          # Ensure the pipx shims are on PATH.
-          export PATH="$HOME/.local/bin:$PATH"
-          ansible --version | head -1
+        run: ansible --version | head -1
 
       - name: Install collections
-        run: |
-          export PATH="$HOME/.local/bin:$PATH"
-          ansible-galaxy collection install -r requirements.yml
+        run: ansible-galaxy collection install -r requirements.yml
 
       - name: Dry-run (diff only, no changes)
         run: ansible-playbook playbooks/deploy.yml --check --diff
