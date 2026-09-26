@@ -9,16 +9,13 @@ ntp_servers:
 dns_servers:
   - 10.0.0.1
 
-# ── LAN event VLANs (production fabric: gw / core / edge) ───────────────────
-# These are the participant and service VLANs carried across the event fabric.
-# Addressing below is the intended design for LM42; update once ISP allocations
-# are confirmed and recorded in NetBox.
-#
-#   VLAN 10 — participants: receives the ISP /24 directly, no NAT.
-#   VLAN 30 — infra/staff: restricted, no participant access.
+# ── LAN event VLAN (production fabric: gw / core / edge) ────────────────────
+# Single participant VLAN carried across the event fabric. It is the public
+# /24 the ISP routes to us (static route to gw1) — participants get real public
+# IPs, no NAT. 192.0.2.0/24 is a placeholder (TEST-NET-1); swap in the real ISP
+# allocation once confirmed and record it in NetBox.
 vlans:
-  10: participants
-  30: infra
+  1337: participants
 
 # Management subnet. There is deliberately no global mgmt_vlan: gateways are
 # managed OOB on a routed port in Mgmt-vrf, and switch management rides the OOB

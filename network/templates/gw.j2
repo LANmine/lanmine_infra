@@ -56,6 +56,10 @@ interface {{ core2_interface }}
 {% for g in hsrp_groups %}
 interface Vlan{{ g.vlan }}
  description {{ vlans.get(g.vlan, 'vlan' ~ g.vlan) }}
+ ! HSRPv2 required: the HSRP group number equals the VLAN id, and VLAN 1337
+ ! exceeds the v1 maximum of 255. Interface-level on Catalyst 9300 (no global
+ ! `standby version` exists).
+ standby version 2
  ip address {{ g.virtual_ip | regex_replace('\.1$', '.2' if inventory_hostname == 'gw1' else '.3') }} 255.255.255.0
  standby {{ g.vlan }} ip {{ g.virtual_ip }}
  standby {{ g.vlan }} priority {{ hsrp_priority }}
