@@ -26,7 +26,7 @@ vlans:
 # Management subnet. There is deliberately no global mgmt_vlan: gateways are
 # managed OOB on a routed port in Mgmt-vrf, and switch management rides the OOB
 # router's VLAN 20. mgmt_vlan is per-host for switch SVIs (edge.j2).
-mgmt_subnet: 10.0.20.0/24  # OOB router VLAN 20 (sw-mgmt); gw1 Gi0/0 = .2
+mgmt_subnet: 10.0.20.0/24  # OOB router VLAN 20 (gw-mgmt); gw1 Gi0/0 = .2
 
 banner: |
   LANmine network device - managed by GitOps (github.com/LANmine/lanmine_infra).
