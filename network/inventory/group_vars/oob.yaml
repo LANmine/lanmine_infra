@@ -4,6 +4,9 @@
 # NOT the production gateway for LAN events.
 role: oob
 template_name: isr1111
+ansible_become: true
+ansible_become_method: enable
+ansible_become_password: "{{ lookup('env', 'NET_PASSWORD') }}"
 
 # VLAN 10 — site-mgmt (internet via NAT): placeholder, ACM, spare ports.
 oob_subnet: 10.0.10.0/24

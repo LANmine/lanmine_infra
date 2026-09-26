@@ -43,7 +43,8 @@ jobs:
         run: ansible-playbook playbooks/render.yml
 
       - name: Dry-run (diff only, no changes)
-        run: ansible-playbook playbooks/deploy.yml --check --diff
+        # Limit to real deployed devices until gw2/core/edge hardware is staged.
+        run: ansible-playbook playbooks/deploy.yml --check --diff --limit oob,gw1
 
       - name: Apply
-        run: ansible-playbook playbooks/deploy.yml
+        run: ansible-playbook playbooks/deploy.yml --limit oob,gw1

@@ -4,6 +4,10 @@
 # gw2 is warm standby. Uplink addressing is per-device in host_vars/gw1.yaml
 # (and host_vars/gw2.yaml once it gets specifics).
 role: gw
+# Ansible uses enable secret for privilege escalation on IOS.
+ansible_become: true
+ansible_become_method: enable
+ansible_become_password: "{{ lookup('env', 'NET_PASSWORD') }}"
 
 # Placeholder upstream/mgmt defaults shared by both gateways; the real values
 # belong to gw1's ISP handoff and go in host_vars/gw1.yaml (TODO).
