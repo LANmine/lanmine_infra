@@ -27,5 +27,5 @@ core_uplink_allowed_vlans: "10,20,30,100"
 # virtual IP (gw1 = .2, gw2 = .3). TODO: confirm against NetBox.
 hsrp_groups:
   - {vlan: 10, virtual_ip: 10.10.0.1}   # participants
-  - {vlan: 20, virtual_ip: 10.20.0.1}   # voice
-  - {vlan: 30, virtual_ip: 10.30.0.1}   # admin
+  - {vlan: 20, virtual_ip: 10.20.0.1}   # ap-management
+  - {vlan: 30, virtual_ip: 10.30.0.1}   # infra

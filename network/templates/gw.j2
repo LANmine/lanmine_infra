@@ -63,11 +63,9 @@ interface Vlan{{ g.vlan }}
  no shutdown
 {% endfor %}
 !
-! In-band management SVI.
-! TODO: on a real box this address must differ from Gi0/0 (Mgmt-vrf) — pick a
-! distinct in-band mgmt address here, or drop the SVI if management is OOB-only.
-interface Vlan{{ mgmt_vlan }}
- description management
- ip address {{ mgmt_ip }} 255.255.255.0
- no shutdown
+! No in-band management SVI. Management is OOB-only: Gi0/0 (Mgmt-vrf) carries
+! {{ mgmt_ip }} to the OOB router, which is the gateway. VLAN 100 (prod-management)
+! was last year's and rendered the same address as a second interface on the
+! box. If an in-band SVI is ever wanted it needs a *distinct* address, not
+! {{ mgmt_ip }} again.
 !

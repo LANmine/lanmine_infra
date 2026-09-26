@@ -19,7 +19,8 @@ oob_dhcp_excluded:
   - "10.0.10.51 10.0.10.254"
 
 # VLAN 20 — sw-mgmt (no internet): managed Cisco switches via Mgmt-vrf.
-# sw01 (3650) is at 10.0.20.2; ISR SVI is the gateway at .1.
+# gw1's Gi0/0 is at 10.0.20.2 (the ISR's ARP entry for .2 holds gw1's Gi0/0
+# MAC); this SVI is the gateway at .1.
 sw_mgmt_network: 10.0.20.0
 sw_mgmt_gateway: 10.0.20.1
 sw_mgmt_subnet: 10.0.20.0/24
