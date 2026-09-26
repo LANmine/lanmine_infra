@@ -13,7 +13,9 @@ ansible_become_password: "{{ lookup('env', 'NET_PASSWORD') }}"
 # belong to gw1's ISP handoff and go in host_vars/gw1.yaml (TODO).
 isp_address: 203.0.113.2/30
 isp_gateway: 203.0.113.1
-mgmt_ip: 10.0.0.2
+mgmt_ip: 10.0.20.2     # gw1's verified Mgmt-vrf address. host_vars wins, so
+                       # gw2 must get its own host_vars before it is staged:
+                       # this default is gw1's, and a duplicate is a conflict.
 # Interface names vary by hardware — override in host_vars.
 isp_interface: TenGigabitEthernet1/1/1
 core1_interface: TenGigabitEthernet1/1/2

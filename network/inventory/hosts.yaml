@@ -4,7 +4,7 @@
 #
 # Real devices today:
 #   oob     — ISR 1111, year-round OOB management router (VLAN 10, 10.0.10.0/24)
-#   gw      — gw1 (WS-C3650-48FQM), primary production gateway (VLAN 20, 10.0.20.0/24)
+#   gw      — gw1 (WS-C9300-48P), primary production gateway (VLAN 20, 10.0.20.0/24)
 #
 # LAN event topology (LM42 / future) uses placeholder IPs until ISP handoff.
 all:
@@ -29,7 +29,7 @@ all:
         ansible_network_os: cisco.ios.ios
       hosts:
         gw1:
-          ansible_host: 10.0.20.2   # Gi0/0 Mgmt-vrf (WS-C3650-48FQM)
+          ansible_host: 10.0.20.2   # Gi0/0 Mgmt-vrf (WS-C9300-48P)
           hsrp_priority: 110        # primary — holds the ISP SFP
         gw2:
           ansible_host: 10.0.0.3    # TODO: real Mgmt-vrf IP
