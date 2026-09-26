@@ -14,6 +14,10 @@ ansible_become_password: "{{ lookup('env', 'NET_PASSWORD') }}"
 isp_address: 203.0.113.2/30
 isp_gateway: 203.0.113.1
 mgmt_ip: 10.0.0.2
+# Interface names vary by hardware — override in host_vars.
+isp_interface: TenGigabitEthernet1/1/1
+core1_interface: TenGigabitEthernet1/1/2
+core2_interface: TenGigabitEthernet1/1/3
 
 # Uplinks to the core switches carry every routed/service VLAN as a trunk.
 core_uplink_allowed_vlans: "10,20,30,100"

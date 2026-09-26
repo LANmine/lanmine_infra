@@ -15,7 +15,12 @@
 #
 mgmt_ip: 10.0.20.2        # GigabitEthernet0/0 in Mgmt-vrf
 
-# ISP uplink — 10G SFP+ port.
+# ISP uplink — FortyGig module port (C9300-48P uplink module).
 # TODO: replace with real linknett /30 once ISP hands off for LM42.
+isp_interface: FortyGigabitEthernet1/1/1
 isp_address: 203.0.113.2/30
 isp_gateway: 203.0.113.1
+
+# Core uplink interfaces (trunk to core1/core2).
+core1_interface: FortyGigabitEthernet1/1/2
+core2_interface: TwentyFiveGigE1/1/1
