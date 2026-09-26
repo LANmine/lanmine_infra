@@ -1,7 +1,9 @@
 ---
 # Deploy intended configs to the devices. Render first so intended/ is fresh.
 # Run with `--check --diff` for a dry-run (no changes) — that's what CI reviews.
-- import_playbook: render.yml
+# render.yml is run as a separate step in CI before this playbook.
+# Running it here too is safe (idempotent) but doubles the work.
+# - import_playbook: render.yml
 
 - name: Deploy intended configs
   hosts: all

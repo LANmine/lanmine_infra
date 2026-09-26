@@ -39,6 +39,9 @@ jobs:
       - name: Install collections
         run: ansible-galaxy collection install -r requirements.yml
 
+      - name: Render intended configs
+        run: ansible-playbook playbooks/render.yml
+
       - name: Dry-run (diff only, no changes)
         run: ansible-playbook playbooks/deploy.yml --check --diff
 
