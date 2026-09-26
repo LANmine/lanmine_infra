@@ -1,20 +1,32 @@
 ---
 # Settings shared by every device.
 domain_name: lan.lanmine.no
-mgmt_vlan: 100
-mgmt_subnet: 10.0.0.0/24
 
+# NTP default — overridden in group_vars/oob.yaml and sw_mgmt.yaml because
+# the production mgmt VLAN (10.0.0.x) is not reachable from those segments.
 ntp_servers:
-  - 10.0.0.1
+  - 10.0.0.1      # TODO: replace with real production mgmt server once it exists
 dns_servers:
   - 10.0.0.1
 
-# Participant / service VLANs used across the fabric.
+# ── LAN event VLANs (production fabric: gw / core / edge) ───────────────────
+# These are the participant and service VLANs carried across the event fabric.
+# Addressing below is the intended design for LM42; update once ISP allocations
+# are confirmed and recorded in NetBox.
+#
+#   VLAN 10 — participants: receives the ISP /24 directly, no NAT.
+#   VLAN 20 — AP management: NATted behind ISR LTE (private, no public IP).
+#   VLAN 30 — infra/staff: restricted, no participant access.
+#   VLAN 100 — production management: gateway/core/edge management SVI.
 vlans:
   10: participants
-  20: voice
-  30: admin
-  100: management
+  20: ap-management
+  30: infra
+  100: prod-management
+
+# Management VLAN for the production fabric (gw/core/edge SVIs).
+mgmt_vlan: 100
+mgmt_subnet: 10.0.0.0/24   # TODO: confirm with NetBox once devices are assigned
 
 banner: |
   LANmine network device - managed by GitOps (github.com/LANmine/lanmine_infra).

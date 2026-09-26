@@ -7,8 +7,10 @@
   gather_facts: false
   connection: local
   tasks:
-    - name: Render {{ inventory_hostname }} ({{ role }})
+    - name: Render {{ inventory_hostname }}
       ansible.builtin.template:
-        src: "{{ playbook_dir }}/../templates/{{ role }}.j2"
+        # Default is role-based (gw.j2, core.j2, edge.j2); a device can point at
+        # a different template with a `template_name` var (e.g. oob -> isr1111.j2).
+        src: "{{ playbook_dir }}/../templates/{{ template_name | default(role) }}.j2"
         dest: "{{ playbook_dir }}/../intended/{{ inventory_hostname }}.cfg"
         mode: "0644"

@@ -1,0 +1,14 @@
+---
+# sw01 — Cisco Catalyst WS-C3650-48FQM
+# SN: FDO2204V0QU, IOS-XE 16.6.7, IP Base licence.
+# Console: ACM port1 (SSH 3001, ogconsole 1), 9600 8N1.
+# Management: GigabitEthernet0/0 in Mgmt-vrf — this is the Ansible reach path.
+#
+# Hardware:
+#   48x GigabitEthernet1/0/1-48  (1G copper, data-plane)
+#    4x TenGigabitEthernet1/1/1-4 (10G SFP+, uplink candidates)
+#
+# No NAT support at any licence level.
+# BGP requires IP Services (this unit is IP Base).
+# Dedicated GigabitEthernet0/0 in Mgmt-vrf — same as 9300.
+mgmt_ip: 10.0.20.2

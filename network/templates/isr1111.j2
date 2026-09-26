@@ -1,0 +1,129 @@
+! {{ inventory_hostname }} — OOB/management router (Cisco IOS-XE ISR 1111)
+! Rendered from git. Do not edit on the device.
+!
+! Role: year-round out-of-band management. The ISR is NOT the production gateway
+! for LAN events — it owns only the garage management LAN. Two management VLANs:
+!   VLAN 10  site-mgmt  (10.0.10.0/24)  — infra with internet (placeholder, ACM)
+!   VLAN 20  sw-mgmt    (10.0.20.0/24)  — switch management, no internet
+!
+hostname {{ inventory_hostname }}
+ip domain-name {{ domain_name }}
+ip routing
+!
+{% for ntp in (ntp_servers | default(['pool.ntp.org'])) %}
+ntp server {{ ntp }}
+{% endfor %}
+!
+{% if snmp_community %}
+snmp-server community {{ snmp_community }} RO
+{% endif %}
+!
+no ip http server
+no ip http secure-server
+!
+{% if lookup('env', 'NET_USER') %}
+username {{ lookup('env', 'NET_USER') }} privilege 15 secret {{ lookup('env', 'NET_PASSWORD') }}
+{% endif %}
+!
+! VLANs on the integrated L2 switch fabric.
+vlan 10
+ name site-mgmt
+vlan 20
+ name sw-mgmt
+!
+! NAT: only VLAN 10 (site-mgmt) gets internet — switch management is isolated.
+ip access-list standard NAT_ACL
+ permit {{ oob_network }} 0.0.0.255
+ip access-list standard MGMT_ACL
+ permit {{ oob_network }} 0.0.0.255
+ permit {{ sw_mgmt_network }} 0.0.0.255
+!
+! DHCP for site-mgmt (.1-.9 and .51-.254 reserved; only .10-.50 offered).
+ip dhcp excluded-address {{ oob_dhcp_excluded | join('\nip dhcp excluded-address ') }}
+ip dhcp pool {{ oob_dhcp_pool }}
+ network {{ oob_subnet }}
+ default-router {{ oob_gateway }}
+ dns-server {{ oob_dns }}
+!
+! LTE WAN — DHCP from carrier; NAT outside.
+interface Cellular0/2/0
+ description LTE-uplink
+ ip address dhcp
+ ip nat outside
+ no cdp enable
+ no shutdown
+!
+! Integrated switch port assignments.
+! Gi0/1/0 — placeholder (10.0.10.2, site-mgmt)
+interface GigabitEthernet0/1/0
+ description placeholder
+ switchport mode access
+ switchport access vlan 10
+ no shutdown
+!
+! Gi0/1/1 — spare (site-mgmt)
+interface GigabitEthernet0/1/1
+ description spare-site-mgmt
+ switchport mode access
+ switchport access vlan 10
+!
+! Gi0/1/2 — spare (site-mgmt)
+interface GigabitEthernet0/1/2
+ description spare-site-mgmt
+ switchport mode access
+ switchport access vlan 10
+!
+! Gi0/1/3 — sw01 Gi0/0 Mgmt-vrf (10.0.20.2, sw-mgmt, no internet)
+interface GigabitEthernet0/1/3
+ description sw01-mgmt
+ switchport mode access
+ switchport access vlan 20
+ no shutdown
+!
+! Gi0/1/4-6 — spare (site-mgmt)
+{% for i in [4, 5, 6] %}
+interface GigabitEthernet0/1/{{ i }}
+ description spare-site-mgmt
+ switchport mode access
+ switchport access vlan 10
+{% endfor %}
+!
+! Gi0/1/7 — Opengear ACM7004 (10.0.10.3, site-mgmt)
+interface GigabitEthernet0/1/7
+ description opengear-acm
+ switchport mode access
+ switchport access vlan 10
+ no shutdown
+!
+! SVIs — routed gateways for each management VLAN.
+interface Vlan10
+ description site-mgmt
+ ip address {{ oob_gateway }} 255.255.255.0
+ ip nat inside
+ no shutdown
+!
+interface Vlan20
+ description sw-mgmt-no-internet
+ ip address {{ sw_mgmt_gateway }} 255.255.255.0
+ no shutdown
+!
+ip nat inside source list NAT_ACL interface Cellular0/2/0 overload
+ip route 0.0.0.0 0.0.0.0 Cellular0/2/0
+!
+ip ssh version 2
+!
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+ transport input all
+ stopbits 1
+!
+line vty 0 4
+ access-class MGMT_ACL in
+ transport input ssh
+ login local
+!
+banner login ^
+{{ banner }}^
+!
+end

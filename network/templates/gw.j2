@@ -1,29 +1,75 @@
-! {{ inventory_hostname }} — L3 gateway/router (Cisco IOS/IOS-XE)
+! {{ inventory_hostname }} — production edge gateway (Cisco IOS-XE Catalyst 9300)
 ! Rendered from git. Do not edit on the device.
 hostname {{ inventory_hostname }}
 ip domain-name {{ domain_name }}
+ip routing
 !
 {% for ntp in ntp_servers %}
 ntp server {{ ntp }}
 {% endfor %}
 !
-interface {{ uplink_interface }}
- description uplink-upstream
- no switchport
- ip address dhcp
+{% if snmp_community %}
+snmp-server community {{ snmp_community }} RO
+{% endif %}
+!
+no ip http server
+!
+! VLANs (participant + service)
+{% for id, name in vlans.items() %}
+vlan {{ id }}
+ name {{ name }}
+{% endfor %}
+!
+! Management VRF — out-of-band management port (the Ansible reach path).
+vrf definition Mgmt-vrf
+ address-family ipv4
+ exit-address-family
+!
+interface GigabitEthernet0/0
+ description oob-management
+ vrf forwarding Mgmt-vrf
+ ip address {{ mgmt_ip }} 255.255.255.0
  no shutdown
 !
-ip route 0.0.0.0 0.0.0.0 {{ default_gateway }}
+! ISP uplink — holds the ISP optical module (10G SFP+).
+interface TenGigabitEthernet1/1/1
+ description uplink-isp
+ no switchport
+ ip address {{ isp_address }}
+ no shutdown
+!
+ip route 0.0.0.0 0.0.0.0 {{ isp_gateway }}
+!
+! Uplinks to the core switches (participant trunks).
+interface TenGigabitEthernet1/1/2
+ description uplink-to-core1
+ switchport mode trunk
+ switchport trunk allowed vlan {{ core_uplink_allowed_vlans }}
+!
+interface TenGigabitEthernet1/1/3
+ description uplink-to-core2
+ switchport mode trunk
+ switchport trunk allowed vlan {{ core_uplink_allowed_vlans }}
 !
 ! First-hop redundancy: gw1 primary, gw2 backup (priority from inventory).
+! Clients use the virtual IP (.1); gw1 owns .2 on each SVI, gw2 owns .3.
 {% for g in hsrp_groups %}
 interface Vlan{{ g.vlan }}
- description participants-vlan{{ g.vlan }}
+ description {{ vlans.get(g.vlan, 'vlan' ~ g.vlan) }}
  ip address {{ g.virtual_ip | regex_replace('\.1$', '.2' if inventory_hostname == 'gw1' else '.3') }} 255.255.255.0
  standby {{ g.vlan }} ip {{ g.virtual_ip }}
  standby {{ g.vlan }} priority {{ hsrp_priority }}
  standby {{ g.vlan }} preempt
+ no shutdown
 {% endfor %}
+!
+! In-band management SVI.
+! TODO: on a real box this address must differ from Gi0/0 (Mgmt-vrf) — pick a
+! distinct in-band mgmt address here, or drop the SVI if management is OOB-only.
+interface Vlan{{ mgmt_vlan }}
+ description management
+ ip address {{ mgmt_ip }} 255.255.255.0
+ no shutdown
 !
 banner login ^
 {{ banner }}^

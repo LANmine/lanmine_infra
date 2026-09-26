@@ -40,9 +40,9 @@ docs for the runner setup.
 
 ```
 inventory/hosts.yaml     devices, roles, mgmt IPs, platform
-inventory/group_vars/{all,gw,core,edge}.yaml   settings shared per role
-inventory/host_vars/edge01.yaml   per-device values (hostname, uplink, access VLANs, table/row)
-templates/{gw,core,edge}.j2          Jinja config templates
+inventory/group_vars/{all,gw,core,edge,oob}.yaml   settings shared per role
+inventory/host_vars/<name>.yaml   per-device values (mgmt/ISP addressing, ports)
+templates/{gw,core,edge}.j2 + isr1111.j2   Jinja config templates (role-based; oob renders isr1111.j2)
 intended/                rendered configs (CI output)
 backups/                 running-config pulled by the drift job
 playbooks/{render,deploy,backup}.yml

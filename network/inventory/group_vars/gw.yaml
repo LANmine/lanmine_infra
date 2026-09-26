@@ -1,10 +1,23 @@
 ---
-# gw1/gw2 — L3 routers on the edge of the LAN. First-hop redundancy via HSRP.
+# gw1/gw2 — production edge gateways (Cisco IOS-XE Catalyst 9300). First-hop
+# redundancy via HSRP. gw1 is primary (holds the ISP SFP on its 10G uplink),
+# gw2 is warm standby. Uplink addressing is per-device in host_vars/gw1.yaml
+# (and host_vars/gw2.yaml once it gets specifics).
 role: gw
-uplink_interface: GigabitEthernet0/0        # to the ISP / upstream
-default_gateway: 203.0.113.1                 # upstream next-hop (example)
+
+# Placeholder upstream/mgmt defaults shared by both gateways; the real values
+# belong to gw1's ISP handoff and go in host_vars/gw1.yaml (TODO).
+isp_address: 203.0.113.2/30
+isp_gateway: 203.0.113.1
+mgmt_ip: 10.0.0.2
+
+# Uplinks to the core switches carry every routed/service VLAN as a trunk.
+core_uplink_allowed_vlans: "10,20,30,100"
 
 # HSRP virtual gateways the participants use (one per routed VLAN).
+# Group number = VLAN id; each box derives its real SVI address from the
+# virtual IP (gw1 = .2, gw2 = .3). TODO: confirm against NetBox.
 hsrp_groups:
-  - {vlan: 10, virtual_ip: 10.10.0.1}
-  - {vlan: 30, virtual_ip: 10.30.0.1}
+  - {vlan: 10, virtual_ip: 10.10.0.1}   # participants
+  - {vlan: 20, virtual_ip: 10.20.0.1}   # voice
+  - {vlan: 30, virtual_ip: 10.30.0.1}   # admin

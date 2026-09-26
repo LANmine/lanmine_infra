@@ -1,0 +1,28 @@
+---
+# isr1111 — OOB/management router (Cisco ISR 1111).
+# Year-round role: owns the garage management LAN over an LTE-only uplink.
+# NOT the production gateway for LAN events.
+role: oob
+template_name: isr1111
+
+# VLAN 10 — site-mgmt (internet via NAT): placeholder, ACM, spare ports.
+oob_subnet: 10.0.10.0/24
+oob_network: 10.0.10.0
+oob_gateway: 10.0.10.1
+oob_dns: 1.1.1.1
+oob_dhcp_pool: MGMT
+oob_dhcp_excluded:
+  - "10.0.10.1 10.0.10.9"
+  - "10.0.10.51 10.0.10.254"
+
+# VLAN 20 — sw-mgmt (no internet): managed Cisco switches via Mgmt-vrf.
+# sw01 (3650) is at 10.0.20.2; ISR SVI is the gateway at .1.
+sw_mgmt_network: 10.0.20.0
+sw_mgmt_gateway: 10.0.20.1
+sw_mgmt_subnet: 10.0.20.0/24
+
+# Override all.yaml NTP — production mgmt VLAN unreachable from OOB segment.
+ntp_servers:
+  - pool.ntp.org
+dns_servers:
+  - 1.1.1.1
