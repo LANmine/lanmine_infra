@@ -1,3 +1,7 @@
 *.env
 .env
 secrets/
+
+# Ansible build artifacts (net-validate.yml / net-deploy.yml regenerate these)
+network/.collections/
+network/intended/

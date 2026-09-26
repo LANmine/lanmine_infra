@@ -15,11 +15,15 @@ ntp server {{ ntp }}
 snmp-server community {{ snmp_community }} RO
 {% endif %}
 !
+{% if mgmt_vlan is defined and mgmt_vlan %}
+! In-band management SVI. There is no global mgmt_vlan — VLAN 100 is retired
+! and gateways are OOB-only. Set mgmt_vlan per host to bring this back.
 interface Vlan{{ mgmt_vlan }}
  description management
  ip address {{ mgmt_ip | default(ansible_host) }} 255.255.255.0
  no shutdown
 !
+{% endif %}
 interface range {{ access_ports }}
  description participant
  switchport mode access

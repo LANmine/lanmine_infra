@@ -4,7 +4,7 @@
 ! Role: year-round out-of-band management. The ISR is NOT the production gateway
 ! for LAN events — it owns only the garage management LAN. Two management VLANs:
 !   VLAN 10  site-mgmt  (10.0.10.0/24)  — infra with internet (placeholder, ACM)
-!   VLAN 20  sw-mgmt    (10.0.20.0/24)  — switch management, no internet
+!   VLAN 20  gw-mgmt    (10.0.20.0/24)  — switch management, no internet
 !
 hostname {{ inventory_hostname }}
 ip domain name {{ domain_name }}
@@ -29,7 +29,7 @@ username {{ lookup('env', 'NET_USER') }} privilege 15 secret {{ lookup('env', 'N
 vlan 10
  name site-mgmt
 vlan 20
- name sw-mgmt
+ name gw-mgmt
 !
 ! NAT: only VLAN 10 (site-mgmt) gets internet — switch management is isolated.
 ip access-list standard NAT_ACL
@@ -69,9 +69,9 @@ interface GigabitEthernet0/1/2
  switchport mode access
  switchport access vlan 10
 !
-! Gi0/1/3 — sw01 Gi0/0 Mgmt-vrf (10.0.20.2, sw-mgmt, no internet)
+! Gi0/1/3 — gw1 Gi0/0 Mgmt-vrf (10.0.20.2, gw-mgmt, no internet)
 interface GigabitEthernet0/1/3
- description sw01-mgmt
+ description gw1-mgmt
  switchport mode access
  switchport access vlan 20
  no shutdown
@@ -99,7 +99,7 @@ interface Vlan10
  no shutdown
 !
 interface Vlan20
- description sw-mgmt-no-internet
+ description gw-mgmt-no-internet
  ip address {{ sw_mgmt_gateway }} 255.255.255.0
  no shutdown
 !

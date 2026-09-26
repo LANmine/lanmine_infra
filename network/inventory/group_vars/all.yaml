@@ -2,8 +2,8 @@
 # Settings shared by every device.
 domain_name: lan.lanmine.no
 
-# NTP default — overridden in group_vars/oob.yaml and sw_mgmt.yaml because
-# the production mgmt VLAN (10.0.0.x) is not reachable from those segments.
+# NTP default — overridden in group_vars/oob.yaml because the OOB segment is
+# off the production fabric and cannot reach the prod NTP.
 ntp_servers:
   - 10.0.0.1      # TODO: replace with real production mgmt server once it exists
 dns_servers:
@@ -17,16 +17,15 @@ dns_servers:
 #   VLAN 10 — participants: receives the ISP /24 directly, no NAT.
 #   VLAN 20 — AP management: NATted behind ISR LTE (private, no public IP).
 #   VLAN 30 — infra/staff: restricted, no participant access.
-#   VLAN 100 — production management: gateway/core/edge management SVI.
 vlans:
   10: participants
   20: ap-management
   30: infra
-  100: prod-management
 
-# Management VLAN for the production fabric (gw/core/edge SVIs).
-mgmt_vlan: 100
-mgmt_subnet: 10.0.0.0/24   # TODO: confirm with NetBox once devices are assigned
+# Management subnet. There is deliberately no global mgmt_vlan: gateways are
+# managed OOB on a routed port in Mgmt-vrf, and switch management rides the OOB
+# router's VLAN 20. mgmt_vlan is per-host for switch SVIs (edge.j2).
+mgmt_subnet: 10.0.20.0/24  # OOB router VLAN 20 (gw-mgmt); gw1 Gi0/0 = .2
 
 banner: |
   LANmine network device - managed by GitOps (github.com/LANmine/lanmine_infra).

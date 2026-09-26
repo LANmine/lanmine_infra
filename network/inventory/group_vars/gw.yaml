@@ -13,19 +13,19 @@ ansible_become_password: "{{ lookup('env', 'NET_PASSWORD') }}"
 # belong to gw1's ISP handoff and go in host_vars/gw1.yaml (TODO).
 isp_address: 203.0.113.2/30
 isp_gateway: 203.0.113.1
-mgmt_ip: 10.0.0.2
+mgmt_ip: 10.0.20.2   # OOB router VLAN 20 (gw-mgmt); real value per host in host_vars
 # Interface names vary by hardware — override in host_vars.
 isp_interface: TenGigabitEthernet1/1/1
 core1_interface: TenGigabitEthernet1/1/2
 core2_interface: TenGigabitEthernet1/1/3
 
 # Uplinks to the core switches carry every routed/service VLAN as a trunk.
-core_uplink_allowed_vlans: "10,20,30,100"
+core_uplink_allowed_vlans: "10,20,30"
 
 # HSRP virtual gateways the participants use (one per routed VLAN).
 # Group number = VLAN id; each box derives its real SVI address from the
 # virtual IP (gw1 = .2, gw2 = .3). TODO: confirm against NetBox.
 hsrp_groups:
   - {vlan: 10, virtual_ip: 10.10.0.1}   # participants
-  - {vlan: 20, virtual_ip: 10.20.0.1}   # voice
-  - {vlan: 30, virtual_ip: 10.30.0.1}   # admin
+  - {vlan: 20, virtual_ip: 10.20.0.1}   # ap-management
+  - {vlan: 30, virtual_ip: 10.30.0.1}   # infra
