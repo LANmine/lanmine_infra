@@ -15,11 +15,9 @@ dns_servers:
 # are confirmed and recorded in NetBox.
 #
 #   VLAN 10 — participants: receives the ISP /24 directly, no NAT.
-#   VLAN 20 — AP management: NATted behind ISR LTE (private, no public IP).
 #   VLAN 30 — infra/staff: restricted, no participant access.
 vlans:
   10: participants
-  20: ap-management
   30: infra
 
 # Management subnet. There is deliberately no global mgmt_vlan: gateways are
