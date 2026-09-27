@@ -9,17 +9,31 @@ ntp_servers:
 dns_servers:
   - 10.0.0.1
 
-# ── LAN event VLAN (production fabric: gw / core / edge) ────────────────────
-# Single participant VLAN carried across the event fabric. It is the public
-# /24 the ISP routes to us (static route to gw1) — participants get real public
-# IPs, no NAT. 192.0.2.0/24 is a placeholder (TEST-NET-1); swap in the real ISP
-# allocation once confirmed and record it in NetBox.
+# ── LAN event VLANs (production fabric: gw / core / edge) ───────────────────
+# 1337 participants — public /24 the ISP routes to us (static route to gw1);
+# participants get real public IPs, no NAT. 192.0.2.0/24 is a placeholder
+# (TEST-NET-1); swap in the real ISP allocation once confirmed.
+# 200 mgmt — private in-band management for the fabric switches (core/edge SVI
+# addresses). No internet egress.
+# 201 servers — private operations network: the in-band Ansible runner machine
+# (gets its network from gw1/gw2) + any event ops hosts. NAT'd out via the
+# transit for internet (GitHub) — see gw.j2.
 vlans:
   1337: participants
+  200: mgmt
+  201: servers
 
-# Management subnet. There is deliberately no global mgmt_vlan: gateways are
-# managed OOB on a routed port in Mgmt-vrf, and switch management rides the OOB
-# router's VLAN 20. mgmt_vlan is per-host for switch SVIs (edge.j2).
+# Fabric management networks, routed by gw1/gw2 (HSRP). VLAN 200 = switch
+# management; VLAN 201 = servers/operations (the in-band runner reaches the
+# switch SVIs on 200 over L3 through the gateways). The gateways' *own*
+# management stays OOB (Gi0/0 in Mgmt-vrf) — never routed on these SVIs.
+fabric_mgmt_subnet: 10.200.0.0/24
+fabric_servers_subnet: 10.201.0.0/24
+mgmt_vlan: 200
+servers_vlan: 201
+
+# Gateway OOB management subnet (Mgmt-vrf Gi0/0 → OOB router VLAN 20 gw-mgmt).
+# This is distinct from the fabric mgmt VLAN above.
 mgmt_subnet: 10.0.20.0/24  # OOB router VLAN 20 (gw-mgmt); gw1 Gi0/0 = .2
 
 banner: |

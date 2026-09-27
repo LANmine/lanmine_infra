@@ -25,16 +25,22 @@ edit network/**  ──PR──▶  net-validate (hosted runner)      lint + ren
       merge to main (only maintainers)
         │
         ▼
-   net-deploy (self-hosted runner on the on-site mgmt box)
-   render intended config ▶ dry-run diff ▶ apply (config-replace) ▶ verify
+   net-deploy (self-hosted runner)
+   render intended config ▶ dry-run diff ▶ apply ▶ verify
         │
    net-drift (scheduled) ── compares running config vs intended, flags drift
 ```
 
-The self-hosted runner lives on a dual-homed management box (Tailscale on one
-side for admin, a leg in the management VLAN on the other). Switches are **not**
-on the tailnet — the runner reaches them over the mgmt VLAN. See the repo root
-docs for the runner setup.
+The self-hosted runner topology is two lanes, one pipeline (net-deploy takes the
+`scope` as a dispatch input — see .github/workflows/net-deploy.yml):
+
+- **OOB lane** (year-round): the self-hosted runner on the OOB management box
+  (placeholder) reaches the ISR and the gateways' OOB Gi0/0 over the OOB LAN.
+- **Fabric lane** (LAN event): a second runner machine on the gateways' servers
+  VLAN (private, NAT'd out) reaches the event core/edge switches in-band over
+  the fabric mgmt VLAN 200. The gateways themselves stay managed OOB.
+
+Switches are **not** on the tailnet.
 
 ## Layout
 
