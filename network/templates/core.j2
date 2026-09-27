@@ -3,7 +3,7 @@
 hostname {{ inventory_hostname }}
 !
 {% for ntp in ntp_servers %}
-ntp server {{ ntp }} use-vrf management
+ntp server {{ ntp }}
 {% endfor %}
 !
 {% for id, name in vlans.items() %}
@@ -11,7 +11,10 @@ vlan {{ id }}
   name {{ name }}
 {% endfor %}
 !
-interface mgmt0
+! In-band management SVI on the fabric mgmt VLAN (mgmt_vlan: 200), default VRF
+! (this is the in-band path, not the OOB mgmt0). Reachable from the servers net
+! through the gateways.
+interface Vlan{{ mgmt_vlan }}
   description management
   ip address {{ ansible_host }}/24
 !

@@ -1,6 +1,14 @@
 ---
-# Device inventory. mgmt IPs live on the management VLAN; the self-hosted runner
-# reaches them over that VLAN. Credentials come from env (Actions secrets), never here.
+# Device inventory. Reach paths / mgmt addressing live here; credentials come
+# from env (Actions secrets), never here.
+#
+# Two deploy lanes, one pipeline (net-deploy --limit selects the scope):
+#   OOB lane (year-round): the existing self-hosted runner on placeholder
+#     (label lanmine-net) reaches isr1111 (10.0.10.1) and the gateways' OOB
+#     Gi0/0 (10.0.20.2) over the OOB router.
+#   Fabric lane (LM42 / future): a second runner machine connected to gw1/gw2
+#     on the servers VLAN reaches the event core/edge switches in-band via the
+#     fabric mgmt VLAN 200 (10.200.0.0/24). The gateways themselves stay OOB.
 #
 # Real devices today:
 #   oob     — ISR 1111, year-round OOB management router (VLAN 10, 10.0.10.0/24)
@@ -8,6 +16,8 @@
 #              Gi0/0 in Mgmt-vrf at 10.0.20.2/24, gateway 10.0.20.1.
 #
 # LAN event topology (LM42 / future) uses placeholder IPs until ISP handoff.
+#   core/edge switch mgmt SVIs live on the fabric mgmt VLAN (10.200.0.0/24) and
+#   are reached over L3 from the servers network through the gateways.
 all:
   vars:
     ansible_connection: ansible.netcommon.network_cli
@@ -42,12 +52,12 @@ all:
       vars:
         ansible_network_os: cisco.nxos.nxos
       hosts:
-        core1: {ansible_host: 10.0.0.4}
-        core2: {ansible_host: 10.0.0.5}
+        core1: {ansible_host: 10.200.0.4}   # fabric mgmt VLAN 200 (in-band)
+        core2: {ansible_host: 10.200.0.5}
 
     edge:
       vars:
         ansible_network_os: cisco.ios.ios
       hosts:
-        edge01: {ansible_host: 10.0.0.11}
-        edge02: {ansible_host: 10.0.0.12}
+        edge01: {ansible_host: 10.200.0.11}  # fabric mgmt VLAN 200 (in-band)
+        edge02: {ansible_host: 10.200.0.12}

@@ -36,11 +36,12 @@ interface {{ isp_interface }}
  description uplink-isp
  no switchport
  ip address {{ isp_address | ansible.utils.ipaddr("address") }} {{ isp_address | ansible.utils.ipaddr("netmask") }}
+ ip nat outside
  no shutdown
 !
 ip route 0.0.0.0 0.0.0.0 {{ isp_gateway }}
 !
-! Uplinks to the core switches (participant trunks).
+! Uplinks to the core switches (fabric trunks).
 interface {{ core1_interface }}
  description uplink-to-core1
  switchport mode trunk
@@ -51,30 +52,58 @@ interface {{ core2_interface }}
  switchport mode trunk
  switchport trunk allowed vlan {{ core_uplink_allowed_vlans }}
 !
+! Server access ports — the in-band Ansible runner machine (+ spares) on the
+! servers VLAN. Treated like any untrusted edge port: port-security + storm
+! control, no STP loops.
+interface range {{ server_access_ports }}
+ description server
+ switchport mode access
+ switchport access vlan {{ servers_vlan }}
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ storm-control broadcast level 1
+!
 ! First-hop redundancy: gw1 primary, gw2 backup (priority from inventory).
-! Clients use the virtual IP (.1); gw1 owns .2 on each SVI, gw2 owns .3.
+! Clients/switches use the virtual IP (.1); gw1 owns .2 on each SVI, gw2 owns .3.
 {% for g in hsrp_groups %}
 interface Vlan{{ g.vlan }}
  description {{ vlans.get(g.vlan, 'vlan' ~ g.vlan) }}
- ! HSRPv2 required: the HSRP group number equals the VLAN id, and VLAN 1337
+{% if g.vlan > 255 %}
+ ! HSRPv2 required here: the HSRP group number equals the VLAN id, and 1337
  ! exceeds the v1 maximum of 255. Interface-level on Catalyst 9300 (no global
  ! `standby version` exists).
  standby version 2
+{% endif %}
  ip address {{ g.virtual_ip | regex_replace('\.1$', '.2' if inventory_hostname == 'gw1' else '.3') }} 255.255.255.0
  standby {{ g.vlan }} ip {{ g.virtual_ip }}
  standby {{ g.vlan }} priority {{ hsrp_priority }}
  standby {{ g.vlan }} preempt
  no shutdown
+{% if g.role is defined and g.role == 'participant' %}
  ! Participant ingress hardening on a public /24: uRPF strict drops any packet
  ! whose source is not reachable back through this SVI (anti-spoof — the main
  ! line), and the ACL keeps participant traffic out of private/OOB space.
  ip verify unicast source reachable-via rx
  ip access-group PARTICIPANT-INGRESS in
+{% elif g.role is defined and g.role == 'mgmt' %}
+ ! Management plane is sealed: only the servers network may initiate in, and
+ ! management protocols only (SSH/ICMP). No egress to the internet.
+ ip access-group MGMT-INGRESS in
+{% elif g.role is defined and g.role == 'servers' %}
+ ! Servers network egress: NAT'd out the ISP uplink (runner needs GitHub).
+ ! See ip nat inside source SERVERS-NAT below.
+ ip nat inside
+{% endif %}
 {% endfor %}
 !
 ! Participant ingress protection. Deny private/OOB destinations (10.0.10.0/24
-! site-mgmt, 10.0.20.0/24 gw-mgmt, RFC1918) with logging; permit everything
-! else. The live participant block is participant_subnet in gw.yaml.
+! site-mgmt, 10.0.20.0/24 gw-mgmt, RFC1918 incl. the fabric mgmt/servers nets)
+! with logging; permit everything else. The live participant block is
+! participant_subnet in gw.yaml.
 {% if participant_subnet is defined %}
 ip access-list extended PARTICIPANT-INGRESS
  deny ip any 10.0.0.0 0.255.255.255 log
@@ -83,9 +112,25 @@ ip access-list extended PARTICIPANT-INGRESS
  permit ip any any
 !
 {% endif %}
-! No in-band management SVI. Management is OOB-only: Gi0/0 (Mgmt-vrf) carries
-! {{ mgmt_ip }} to the OOB router, which is the gateway. The legacy VLAN 100
-! (prod-management) was retired because it rendered this same address as a
-! second interface on the box. If an in-band SVI is ever wanted it needs a
-! *distinct* address, not {{ mgmt_ip }} again.
+{% if fabric_mgmt_subnet is defined and fabric_servers_subnet is defined %}
+! Management ingress — permit only the servers network to reach the mgmt plane
+! over SSH/ICMP; drop everything else (participants are already blocked by
+! PARTICIPANT-INGRESS; this also stops the gateways' OOB side and anything else).
+ip access-list extended MGMT-INGRESS
+ permit icmp {{ fabric_servers_subnet | ansible.utils.ipaddr('network') }} {{ fabric_servers_subnet | ansible.utils.ipaddr('hostmask') }} any
+ permit tcp {{ fabric_servers_subnet | ansible.utils.ipaddr('network') }} {{ fabric_servers_subnet | ansible.utils.ipaddr('hostmask') }} any eq 22
+ deny ip any any log
+!
+! Outbound NAT for the servers network (in-band runner → GitHub/API). Swap-in
+! point: rides the same isp_interface/isp_address vars as the transit.
+ip access-list standard SERVERS-NAT
+ permit {{ fabric_servers_subnet | ansible.utils.ipaddr('network') }} {{ fabric_servers_subnet | ansible.utils.ipaddr('hostmask') }}
+ip nat inside source list SERVERS-NAT interface {{ isp_interface }} overload
+!
+{% endif %}
+! Gateway host management is OOB-only: Gi0/0 (Mgmt-vrf) carries {{ mgmt_ip }}
+! to the OOB router. The *fabric* switch-mgmt (VLAN 200) and servers (VLAN 201)
+! networks are the in-band SVIs above — the legacy VLAN 100 incident (the same
+! address rendered on two interfaces) does not recur because OOB Gi0/0 is a
+! distinct routed port in Mgmt-vrf, separate from the global-VRF SVIs.
 !
