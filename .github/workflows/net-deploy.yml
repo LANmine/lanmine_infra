@@ -7,11 +7,12 @@ name: Deploy network configs
 # uncomment the push trigger so a merge to main auto-deploys the changed configs.
 #
 # `scope` selects the `--limit` for the deploy:
-#   oob,gw1   (default) — the real, always-on OOB lane, as before.
-#   core,edge            — event fabric switches, deployed from the in-band
-#                          runner once it is registered (label lanmine-net).
-#   all                  — everything (requires the fabric runner to have
-#                          routes to the real devices).
+#   oob,gw1,gw2 (default) — the real, always-on OOB lane: ISR + both gateways.
+#   oob,gw1 / oob,gw2     — a single gateway (bring-up or targeted changes).
+#   core,edge             — event fabric switches, deployed from the in-band
+#                           runner once it is registered (label lanmine-net).
+#   all                   — everything (requires the fabric runner to have
+#                           routes to the real devices).
 on:
   workflow_dispatch:
     inputs:
@@ -19,9 +20,11 @@ on:
         description: 'Hosts to deploy (--limit expression).'
         type: choice
         required: true
-        default: 'oob,gw1'
+        default: 'oob,gw1,gw2'
         options:
           - 'oob,gw1'
+          - 'oob,gw2'
+          - 'oob,gw1,gw2'
           - 'core,edge'
           - 'all'
   # push:

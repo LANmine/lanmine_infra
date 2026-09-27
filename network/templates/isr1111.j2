@@ -63,11 +63,12 @@ interface GigabitEthernet0/1/1
  switchport mode access
  switchport access vlan 10
 !
-! Gi0/1/2 — spare (site-mgmt)
+! Gi0/1/2 — gw2 Gi0/0 Mgmt-vrf (10.0.20.3, gw-mgmt, no internet)
 interface GigabitEthernet0/1/2
- description spare-site-mgmt
+ description gw2-mgmt
  switchport mode access
- switchport access vlan 10
+ switchport access vlan 20
+ no shutdown
 !
 ! Gi0/1/3 — gw1 Gi0/0 Mgmt-vrf (10.0.20.2, gw-mgmt, no internet)
 interface GigabitEthernet0/1/3

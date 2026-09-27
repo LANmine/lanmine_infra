@@ -5,15 +5,16 @@
 # Two deploy lanes, one pipeline (net-deploy --limit selects the scope):
 #   OOB lane (year-round): the existing self-hosted runner on placeholder
 #     (label lanmine-net) reaches isr1111 (10.0.10.1) and the gateways' OOB
-#     Gi0/0 (10.0.20.2) over the OOB router.
+#     Gi0/0 (10.0.20.2/10.0.20.3) over the OOB router.
 #   Fabric lane (LM42 / future): a second runner machine connected to gw1/gw2
 #     on the servers VLAN reaches the event core/edge switches in-band via the
 #     fabric mgmt VLAN 200 (10.200.0.0/24). The gateways themselves stay OOB.
 #
 # Real devices today:
 #   oob     — ISR 1111, year-round OOB management router (VLAN 10, 10.0.10.0/24)
-#   gw      — gw1 (WS-C9300-48P), primary production gateway. Mgmt is OOB:
-#              Gi0/0 in Mgmt-vrf at 10.0.20.2/24, gateway 10.0.20.1.
+#   gw      — gw1 (WS-C9300-48P, primary) + gw2 (WS-C9300-48P, warm standby).
+#              Mgmt is OOB: Gi0/0 in Mgmt-vrf at 10.0.20.2/24 (gw1) /
+#              10.0.20.3/24 (gw2), gateway 10.0.20.1 (ISR VLAN 20 gw-mgmt).
 #
 # LAN event topology (LM42 / future) uses placeholder IPs until ISP handoff.
 #   core/edge switch mgmt SVIs live on the fabric mgmt VLAN (10.200.0.0/24) and
@@ -43,7 +44,7 @@ all:
           ansible_host: 10.0.20.2   # Gi0/0 Mgmt-vrf (WS-C9300-48P)
           hsrp_priority: 110        # primary — holds the ISP SFP
         gw2:
-          ansible_host: 10.0.0.3    # TODO: real Mgmt-vrf IP
+          ansible_host: 10.0.20.3   # Gi0/0 Mgmt-vrf (WS-C9300-48P)
           hsrp_priority: 90         # standby
 
     # ── LAN event topology (LM42 / future) ───────────────────────────────────
