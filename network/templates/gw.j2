@@ -94,7 +94,7 @@ interface Vlan{{ g.vlan }}
  ! `standby version` exists).
  standby version 2
 {% endif %}
- ip address {{ g.virtual_ip | regex_replace('\.1$', '.2' if inventory_hostname == 'gw1' else '.3') }} 255.255.255.0
+ ip address {{ g.virtual_ip | regex_replace('\.1$', '.2' if inventory_hostname == 'gw1' else '.3') }} {{ g.mask | default('255.255.255.0') }}
  standby {{ g.vlan }} ip {{ g.virtual_ip }}
  standby {{ g.vlan }} priority {{ hsrp_priority }}
  standby {{ g.vlan }} preempt
@@ -111,6 +111,13 @@ interface Vlan{{ g.vlan }}
 {% elif g.role is defined and g.role == 'mgmt' %}
  ! Management plane is sealed: only the servers network may initiate in, and
  ! management protocols only (SSH/ICMP). No egress to the internet.
+ ip access-group MGMT-INGRESS in
+{% elif g.role is defined and g.role == 'legacy_mgmt' %}
+ ! Legacy management segment (VLAN 50 / 172.16.1.0/25) — the mgmt net baked into
+ ! the reused old switches, kept so they come up reachable when trunked in with no
+ ! factory reset. Sealed exactly like the fabric mgmt plane: only the servers net
+ ! may SSH/ICMP in. Transitional — renumber reused gear onto VLAN 200 (10.200.0.x)
+ ! as it is onboarded, then retire this segment.
  ip access-group MGMT-INGRESS in
 {% elif g.role is defined and g.role == 'ap_mgmt' %}
  ! AP management plane — sealed exactly like the switch mgmt plane: only the
@@ -206,7 +213,9 @@ ip dhcp pool WIFI
 {% endif %}
 ! Gateway host management is OOB-only: Gi0/0 (Mgmt-vrf) carries {{ mgmt_ip }}
 ! to the OOB router. The *fabric* switch-mgmt (VLAN 200) and servers (VLAN 201)
-! networks are the in-band SVIs above — the legacy VLAN 100 incident (the same
-! address rendered on two interfaces) does not recur because OOB Gi0/0 is a
-! distinct routed port in Mgmt-vrf, separate from the global-VRF SVIs.
+! networks are the in-band SVIs above, alongside the legacy management segment
+! (VLAN 50 / 172.16.1.0/25) used to reach reused old switches as-is. The legacy
+! VLAN 100 incident (the same address rendered on two interfaces) does not recur
+! because OOB Gi0/0 is a distinct routed port in Mgmt-vrf, separate from the
+! global-VRF SVIs.
 !

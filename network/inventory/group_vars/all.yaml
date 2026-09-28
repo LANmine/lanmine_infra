@@ -10,6 +10,13 @@ dns_servers:
   - 10.0.0.1
 
 # ── LAN event VLANs (production fabric: gw / core / edge) ───────────────────
+# 50 legacy-mgmt — the management segment baked into the reused old switches:
+# 172.16.1.0/25 (e.g. CORE-SW-01's Vlan50 SVI = 172.16.1.11/25, gw 172.16.1.1).
+# Deliberate carve-out so that gear comes up reachable the moment it is trunked
+# in, with no factory reset. NOTE: breaks the "third octet = VLAN" convention on
+# purpose — it matches the existing gear's address space, not the fabric. It is a
+# bridge, not a home: renumber reused switches onto VLAN 200 (10.200.0.x) as they
+# are onboarded.
 # 1337 participants — public /24 the ISP routes to gw1 (a static route).
 # Participants get real public IPs from a DHCP pool on gw1 (gateway-only; the
 # pool excludes the HSRP virtual/gateway addresses and the WiFi-NAT pair).
@@ -28,6 +35,7 @@ dns_servers:
 # the fabric/OOB nets are blocked by WIFI-INGRESS; outbound NAT rides the
 # participant block (192.0.2.10-11) so WiFi never spends participant public IPs.
 vlans:
+  50: legacy-mgmt
   1337: participants
   200: mgmt
   201: servers
@@ -43,6 +51,12 @@ fabric_mgmt_subnet: 10.200.0.0/24
 fabric_servers_subnet: 10.201.0.0/24
 fabric_ap_mgmt_subnet: 10.202.0.0/24
 fabric_wifi_subnet: 10.210.0.0/24
+
+# Legacy management segment (VLAN 50) — the baked-in mgmt net of the reused old
+# switches. Routed only by the gateways (SVI 172.16.1.1/25); new core/edge just
+# trunk it. Sealed like the fabric mgmt plane: only the servers net may SSH/ICMP
+# in. Transitional — reused gear moves onto 10.200.0.x as it is onboarded.
+legacy_mgmt_subnet: 172.16.1.0/25
 mgmt_vlan: 200
 servers_vlan: 201
 ap_mgmt_vlan: 202
