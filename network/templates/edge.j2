@@ -17,8 +17,9 @@ snmp-server community {{ snmp_community }} RO
 !
 {% if mgmt_vlan is defined and mgmt_vlan %}
 ! In-band management SVI on the fabric mgmt VLAN (mgmt_vlan: 200) — reachable
-! from the servers network through the gateways. OOB VLAN 100 is retired; the
-! gateway's *own* management is OOB (Gi0/0 Mgmt-vrf) on a different address.
+! from the servers network through the gateways. The gateway's *own* management
+! is OOB (Gi0/0 Mgmt-vrf) on a different address. VLAN 100 on this box is the
+! public participant network, not management.
 interface Vlan{{ mgmt_vlan }}
  description management
  ip address {{ mgmt_ip | default(ansible_host) }} 255.255.255.0

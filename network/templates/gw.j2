@@ -89,9 +89,9 @@ interface range {{ gw_ap_ports }}
 interface Vlan{{ g.vlan }}
  description {{ vlans.get(g.vlan, 'vlan' ~ g.vlan) }}
 {% if g.vlan > 255 %}
- ! HSRPv2 required here: the HSRP group number equals the VLAN id, and 1337
- ! exceeds the v1 maximum of 255. Interface-level on Catalyst 9300 (no global
- ! `standby version` exists).
+ ! HSRPv2 required when the VLAN id exceeds the HSRP v1 maximum of 255 (the
+ ! group number equals the VLAN id). Interface-level only on Catalyst 9300 — no
+ ! global `standby version` exists.
  standby version 2
 {% endif %}
  ip address {{ g.virtual_ip | regex_replace('\.1$', '.2' if inventory_hostname == 'gw1' else '.3') }} {{ g.mask | default('255.255.255.0') }}
@@ -113,12 +113,12 @@ interface Vlan{{ g.vlan }}
  ! management protocols only (SSH/ICMP). No egress to the internet.
  ip access-group MGMT-INGRESS in
 {% elif g.role is defined and g.role == 'legacy_mgmt' %}
- ! Legacy management segments (VLAN 50 / 172.16.1.0/25, VLAN 100 / 10.0.0.0/24) —
- ! the mgmt nets baked into the reused old switches, kept so they come up
- ! reachable when trunked in with no factory reset. Sealed exactly like the fabric
- ! mgmt plane: only the servers net may SSH/ICMP in. Transitional — renumber
- ! reused gear onto VLAN 200 (10.200.0.x) as it is onboarded, then retire these
- ! segments.
+ ! Legacy management segment (VLAN 50 / 172.16.1.0/25) — the mgmt net baked into
+ ! the reused old switches (core + edges, which mirror the core), kept so they
+ ! come up reachable when trunked in with no factory reset. Sealed exactly like
+ ! the fabric mgmt plane: only the servers net may SSH/ICMP in. Transitional —
+ ! renumber reused gear onto VLAN 200 (10.200.0.x) as it is onboarded, then
+ ! retire this segment.
  ip access-group MGMT-INGRESS in
 {% elif g.role is defined and g.role == 'ap_mgmt' %}
  ! AP management plane — sealed exactly like the switch mgmt plane: only the
@@ -188,10 +188,10 @@ ip nat inside source list WIFI-NAT pool WIFI-PUBLIC overload
 !
 {% endif %}
 {% if dhcp_server is defined and dhcp_server %}
-! DHCP pools for the participant (1337) + wifi (210) segments. The serving
-! gateway is the host with dhcp_server: true (gw1); others render no pools.
-! Addresses derive from the subnet vars, so a participant block swap only
-! touches participant_subnet.
+! DHCP pools for the participant (VLAN 100 — the public contestant net) + wifi
+! (210) segments. The serving gateway is the host with dhcp_server: true (gw1);
+! others render no pools. Addresses derive from the subnet vars, so a participant
+! block swap only touches participant_subnet.
 {% set p = participant_subnet.split('/')[0].split('.') %}
 {% set w = fabric_wifi_subnet.split('/')[0].split('.') %}
 service dhcp
@@ -215,8 +215,8 @@ ip dhcp pool WIFI
 ! Gateway host management is OOB-only: Gi0/0 (Mgmt-vrf) carries {{ mgmt_ip }}
 ! to the OOB router. The *fabric* switch-mgmt (VLAN 200) and servers (VLAN 201)
 ! networks are the in-band SVIs above, alongside the legacy management segment
-! (VLAN 50 / 172.16.1.0/25) used to reach reused old switches as-is. The legacy
-! VLAN 100 incident (the same address rendered on two interfaces) does not recur
-! because OOB Gi0/0 is a distinct routed port in Mgmt-vrf, separate from the
-! global-VRF SVIs.
+! (VLAN 50 / 172.16.1.0/25) used to reach reused old switches as-is. The old
+! duplicate-address incident (one mgmt IP rendered on both an SVI and Gi0/0)
+! does not recur because OOB Gi0/0 is a distinct routed port in Mgmt-vrf,
+! separate from the global-VRF SVIs.
 !
