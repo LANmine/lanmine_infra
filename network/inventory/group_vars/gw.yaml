@@ -16,32 +16,39 @@ isp_gateway: 203.0.113.1
 mgmt_ip: 10.0.20.2   # OOB router VLAN 20 (gw-mgmt); real value per host in host_vars
 # Participant public /24 — the block the ISP statically routes to gw1. Placeholder
 # 192.0.2.0/24 (TEST-NET-1). This is the single swap point for the real ISP
-# allocation; it feeds the PARTICIPANT-INGRESS ACL in gw.j2. Participants use
-# static public IPs (DHCP reservations are not possible logistically), so the
-# mask is assumed /24 today — parameterize it when the real block lands.
+# allocation: it feeds the PARTICIPANT-INGRESS ACL, the participant DHCP pool and
+# the WiFi-NAT pool addresses in gw.j2, so a swap touches nothing else. The mask
+# is assumed /24 today — parameterize when the real block lands.
 participant_subnet: 192.0.2.0/24
+# DNS handed to participants + WiFi clients. Public resolver by default; swap for
+# the ISP's DNS at handoff if preferred.
+participant_dns: 1.1.1.1
 # Interface names vary by hardware — override in host_vars.
 isp_interface: TenGigabitEthernet1/1/1
 core1_interface: TenGigabitEthernet1/1/2
 core2_interface: TenGigabitEthernet1/1/3
 
-# Uplinks to the core switches carry the fabric VLANs as a trunk (participant +
-# the switch mgmt plane). The servers VLAN is gateway-local: only the in-band
-# runner plugs into it (a gateway access port), so it does not ride the uplinks.
-core_uplink_allowed_vlans: "1337,200"
+# Uplinks to the core switches carry the fabric VLANs as a trunk: participant +
+# switch mgmt + ap-mgmt + wifi. The servers VLAN is gateway-local: only the
+# in-band runner plugs into it (a gateway access port), so it does not ride the
+# uplinks.
+core_uplink_allowed_vlans: "1337,200,202,210"
 
 # Access ports that host the in-band operations machines (the Ansible runner
 # machine + spares), on the servers VLAN.
 server_access_ports: "GigabitEthernet1/0/45 - 48"
 
 # HSRP virtual gateways — one per routed VLAN. The role field selects the role the
-# gw.j2 SVI loop special-cases (participant = uRPF + ingress ACL, mgmt = sealed
-# ACL, servers = NAT inside). Group number = VLAN id; each box derives its real
-# SVI address from the virtual IP (gw1 = .2, gw2 = .3).
+# gw.j2 SVI loop special-cases: participant = uRPF + PARTICIPANT-INGRESS,
+# mgmt/ap_mgmt = sealed MGMT-INGRESS, servers = NAT inside, wifi = WIFI-INGRESS +
+# NAT inside. Group number = VLAN id; each box derives its real SVI address from
+# the virtual IP (gw1 = .2, gw2 = .3).
 # The gateways' *own* management is OOB-only (Gi0/0 Mgmt-vrf) — never routed as
-# an SVI — while the fabric's switch-mgmt and servers networks ARE the in-band
-# SVIs below. TODO: confirm against NetBox.
+# an SVI — while the fabric's switch-mgmt, servers, ap-mgmt and wifi networks ARE
+# the in-band SVIs below. TODO: confirm against NetBox.
 hsrp_groups:
-  - {vlan: 1337, virtual_ip: 192.0.2.1, role: participant}   # participants — placeholder public /24
+  - {vlan: 1337, virtual_ip: 192.0.2.1, role: participant}   # participants — placeholder public /24, DHCP from gw1
   - {vlan: 200, virtual_ip: 10.200.0.1, role: mgmt}          # fabric switch management
   - {vlan: 201, virtual_ip: 10.201.0.1, role: servers}       # operations / in-band runner
+  - {vlan: 202, virtual_ip: 10.202.0.1, role: ap_mgmt}       # AP management (static APs, sealed)
+  - {vlan: 210, virtual_ip: 10.210.0.1, role: wifi}          # guest WiFi (DHCP, NAT)

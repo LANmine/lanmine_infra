@@ -25,3 +25,14 @@ isp_gateway: 203.0.113.1
 # Core uplink interfaces (trunk to core1/core2).
 core1_interface: FortyGigabitEthernet1/1/2
 core2_interface: TwentyFiveGigE1/1/1
+
+# DHCP server for the participant (1337) and WiFi (210) segments. gw1 only by
+# design: pools live in gw.j2 behind this flag, so gw2 renders no pools (if gw1
+# is down, existing leases continue via HSRP failover but no new leases are
+# issued — acceptable for an event network).
+dhcp_server: true
+
+# AP host ports — FlexConnect trunks (native ap-mgmt VLAN 202, tagged wifi 210).
+# Ports are free/unused on gw1 (no cable = inert config). This is the LM42 path
+# until a fabric edge is deployed that should host the APs instead.
+gw_ap_ports: "GigabitEthernet1/0/41 - 42"
