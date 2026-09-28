@@ -28,11 +28,11 @@ isp_interface: TenGigabitEthernet1/1/1
 core1_interface: TenGigabitEthernet1/1/2
 core2_interface: TenGigabitEthernet1/1/3
 
-# Uplinks to the core switches carry the fabric VLANs as a trunk: legacy-mgmt x2
-# (VLANs 50 + 100) + participant + switch mgmt + ap-mgmt + wifi. The servers VLAN
-# is gateway-local: only the in-band runner plugs into it (a gateway access port),
+# Uplinks to the core switches carry the fabric VLANs as a trunk: legacy-mgmt
+# (VLAN 50) + participant + switch mgmt + ap-mgmt + wifi. The servers VLAN is
+# gateway-local: only the in-band runner plugs into it (a gateway access port),
 # so it does not ride the uplinks.
-core_uplink_allowed_vlans: "50,100,1337,200,202,210"
+core_uplink_allowed_vlans: "50,1337,200,202,210"
 
 # Access ports that host the in-band operations machines (the Ansible runner
 # machine + spares), on the servers VLAN.
@@ -49,7 +49,6 @@ server_access_ports: "GigabitEthernet1/0/45 - 48"
 # management nets ARE the in-band SVIs below. TODO: confirm against NetBox.
 hsrp_groups:
   - {vlan: 50, virtual_ip: 172.16.1.1, role: legacy_mgmt, mask: 255.255.255.128}   # reused old switches' baked-in mgmt (172.16.1.0/25)
-  - {vlan: 100, virtual_ip: 10.0.0.1, role: legacy_mgmt}     # old edges' baked-in mgmt (10.0.0.0/24, pre-redesign prod-management)
   - {vlan: 1337, virtual_ip: 192.0.2.1, role: participant}   # participants — placeholder public /24, DHCP from gw1
   - {vlan: 200, virtual_ip: 10.200.0.1, role: mgmt}          # fabric switch management
   - {vlan: 201, virtual_ip: 10.201.0.1, role: servers}       # operations / in-band runner
