@@ -16,6 +16,7 @@
         backup_options:
           dir_path: "{{ playbook_dir }}/../backups"
           filename: "{{ inventory_hostname }}.pre.cfg"
+        save_when: modified
       when: ansible_network_os == 'cisco.ios.ios'
 
     - name: Push config (NX-OS)
@@ -25,6 +26,7 @@
         backup_options:
           dir_path: "{{ playbook_dir }}/../backups"
           filename: "{{ inventory_hostname }}.pre.cfg"
+        save_when: modified
       when: ansible_network_os == 'cisco.nxos.nxos'
 
 # For true source-of-truth enforcement (device forced to match git exactly, and
