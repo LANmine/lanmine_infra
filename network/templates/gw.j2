@@ -113,11 +113,12 @@ interface Vlan{{ g.vlan }}
  ! management protocols only (SSH/ICMP). No egress to the internet.
  ip access-group MGMT-INGRESS in
 {% elif g.role is defined and g.role == 'legacy_mgmt' %}
- ! Legacy management segment (VLAN 50 / 172.16.1.0/25) — the mgmt net baked into
- ! the reused old switches, kept so they come up reachable when trunked in with no
- ! factory reset. Sealed exactly like the fabric mgmt plane: only the servers net
- ! may SSH/ICMP in. Transitional — renumber reused gear onto VLAN 200 (10.200.0.x)
- ! as it is onboarded, then retire this segment.
+ ! Legacy management segments (VLAN 50 / 172.16.1.0/25, VLAN 100 / 10.0.0.0/24) —
+ ! the mgmt nets baked into the reused old switches, kept so they come up
+ ! reachable when trunked in with no factory reset. Sealed exactly like the fabric
+ ! mgmt plane: only the servers net may SSH/ICMP in. Transitional — renumber
+ ! reused gear onto VLAN 200 (10.200.0.x) as it is onboarded, then retire these
+ ! segments.
  ip access-group MGMT-INGRESS in
 {% elif g.role is defined and g.role == 'ap_mgmt' %}
  ! AP management plane — sealed exactly like the switch mgmt plane: only the
