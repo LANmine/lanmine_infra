@@ -13,6 +13,10 @@ snmp-server community {{ snmp_community }} RO
 {% endif %}
 !
 no ip http server
+! Accept any SFP/QSFP module (incl. 3rd-party / ISP-provided optics) instead of
+! errdisabling the port. Needed for the ISP handoff — the far-side module's
+! Cisco-coding is outside our control.
+service unsupported-transceiver
 !
 ! VLANs (participant + service)
 {% for id, name in vlans.items() %}
