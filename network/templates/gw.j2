@@ -67,6 +67,18 @@ interface range {{ server_access_ports }}
  spanning-tree bpduguard enable
  storm-control broadcast level 1
 !
+{% if gw_ap_ports is defined and gw_ap_ports %}
+! AP host ports — FlexConnect trunks (native ap-mgmt VLAN 202, tagged wifi 210).
+! Inert until an AP is cabled to one of these ports.
+interface range {{ gw_ap_ports }}
+ description ap
+ switchport mode trunk
+ switchport trunk native vlan {{ ap_mgmt_vlan }}
+ switchport trunk allowed vlan {{ ap_mgmt_vlan }},{{ wifi_vlan }}
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+{% endif %}
 ! First-hop redundancy: gw1 primary, gw2 backup (priority from inventory).
 ! Clients/switches use the virtual IP (.1); gw1 owns .2 on each SVI, gw2 owns .3.
 {% for g in hsrp_groups %}
@@ -87,16 +99,31 @@ interface Vlan{{ g.vlan }}
  ! Participant ingress hardening on a public /24: uRPF strict drops any packet
  ! whose source is not reachable back through this SVI (anti-spoof — the main
  ! line), and the ACL keeps participant traffic out of private/OOB space.
+ ! Participants lease via DHCP from gw1 — DISCOVER/OFFER are broadcasts to the
+ ! router's own DHCP server, which bypass uRPF. Verify DHCP+uRPF co-exist with a
+ ! real client before the event.
  ip verify unicast source reachable-via rx
  ip access-group PARTICIPANT-INGRESS in
 {% elif g.role is defined and g.role == 'mgmt' %}
  ! Management plane is sealed: only the servers network may initiate in, and
  ! management protocols only (SSH/ICMP). No egress to the internet.
  ip access-group MGMT-INGRESS in
+{% elif g.role is defined and g.role == 'ap_mgmt' %}
+ ! AP management plane — sealed exactly like the switch mgmt plane: only the
+ ! servers net may SSH/ICMP in, and AP outbound router traffic is denied (APs
+ ! are static 10.202.0.2-20; FlexConnect local switching needs no controller or
+ ! internet).
+ ip access-group MGMT-INGRESS in
 {% elif g.role is defined and g.role == 'servers' %}
  ! Servers network egress: NAT'd out the ISP uplink (runner needs GitHub).
  ! See ip nat inside source SERVERS-NAT below.
  ip nat inside
+{% elif g.role is defined and g.role == 'wifi' %}
+ ! Guest WiFi egress: RFC1918/fabric/OOB destinations are denied (WIFI-INGRESS)
+ ! and outbound is NAT'd off the participant public block (WIFI-NAT below), so
+ ! guest WiFi never spends participant public IPs.
+ ip nat inside
+ ip access-group WIFI-INGRESS in
 {% endif %}
 {% endfor %}
 !
@@ -126,6 +153,51 @@ ip access-list extended MGMT-INGRESS
 ip access-list standard SERVERS-NAT
  permit {{ fabric_servers_subnet | ansible.utils.ipaddr('network') }} {{ fabric_servers_subnet | ansible.utils.ipaddr('hostmask') }}
 ip nat inside source list SERVERS-NAT interface {{ isp_interface }} overload
+!
+{% endif %}
+{% if fabric_wifi_subnet is defined and participant_subnet is defined %}
+! WiFi ingress posture — same shape as the participant ACL: deny private/OOB and
+! host RFC1918 destinations with logging, permit everything else (applied on the
+! wifi SVI; the fabric, OOB and AP-mgmt nets are all inside 10.0.0.0/8).
+ip access-list extended WIFI-INGRESS
+ deny ip any 10.0.0.0 0.255.255.255 log
+ deny ip any 172.16.0.0 0.15.255.255 log
+ deny ip any 192.168.0.0 0.0.255.255 log
+ permit ip any any
+!
+! WiFi egress NAT — borrows .10/.11 from the participant public block so guest
+! WiFi never spends participant public IPs. The pool moves automatically when
+! participant_subnet is swapped.
+{% set p = participant_subnet.split('/')[0].split('.') %}
+ip access-list standard WIFI-NAT
+ permit {{ fabric_wifi_subnet | ansible.utils.ipaddr('network') }} {{ fabric_wifi_subnet | ansible.utils.ipaddr('hostmask') }}
+ip nat pool WIFI-PUBLIC {{ p[0] }}.{{ p[1] }}.{{ p[2] }}.10 {{ p[0] }}.{{ p[1] }}.{{ p[2] }}.11 netmask {{ participant_subnet | ansible.utils.ipaddr('netmask') }}
+ip nat inside source list WIFI-NAT pool WIFI-PUBLIC overload
+!
+{% endif %}
+{% if dhcp_server is defined and dhcp_server %}
+! DHCP pools for the participant (1337) + wifi (210) segments. The serving
+! gateway is the host with dhcp_server: true (gw1); others render no pools.
+! Addresses derive from the subnet vars, so a participant block swap only
+! touches participant_subnet.
+{% set p = participant_subnet.split('/')[0].split('.') %}
+{% set w = fabric_wifi_subnet.split('/')[0].split('.') %}
+service dhcp
+!
+! Participant leases .20-.250; .1-.19 are held (HSRP virtual .1, gw1 .2, gw2 .3,
+! the WiFi-NAT pair .10-.11, + buffer). Network/mask track participant_subnet.
+ip dhcp excluded-address {{ p[0] }}.{{ p[1] }}.{{ p[2] }}.1 {{ p[0] }}.{{ p[1] }}.{{ p[2] }}.19
+ip dhcp pool PARTICIPANTS
+ network {{ p[0] }}.{{ p[1] }}.{{ p[2] }}.0 {{ participant_subnet | ansible.utils.ipaddr('netmask') }}
+ default-router {{ p[0] }}.{{ p[1] }}.{{ p[2] }}.1
+ dns-server {{ participant_dns }}
+!
+ip dhcp excluded-address {{ w[0] }}.{{ w[1] }}.{{ w[2] }}.1 {{ w[0] }}.{{ w[1] }}.{{ w[2] }}.99
+ip dhcp pool WIFI
+ network {{ w[0] }}.{{ w[1] }}.{{ w[2] }}.0 {{ fabric_wifi_subnet | ansible.utils.ipaddr('netmask') }}
+ default-router {{ w[0] }}.{{ w[1] }}.{{ w[2] }}.1
+ dns-server {{ participant_dns }}
+ domain-name {{ domain_name }}
 !
 {% endif %}
 ! Gateway host management is OOB-only: Gi0/0 (Mgmt-vrf) carries {{ mgmt_ip }}

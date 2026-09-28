@@ -75,8 +75,9 @@ real controls). Keys, passwords and community strings never go in git.
 ## Safety
 
 - Deploys run a `--check --diff` dry-run first; a maintainer reviews it in the PR.
-- Apply uses config-replace so the device is forced to match git (out-of-band
-  changes get reverted). Use commit-confirm / `reload in` on real gear so a bad
-  push self-reverts and can't lock you out.
+- Apply is line-mode `ios_config`/`nxos_config` (additive): new/changed lines land,
+  but **removals never land from a diff** — delete config on the device by hand or
+  add explicit `no ...` lines to the template. `save_when: modified` persists applied
+  changes to startup-config (reboot-safe).
 - Legacy switches (older IOS) need permissive SSH crypto on the runner
   (ssh-rsa / SHA-1); modern IOS-XE / NX-OS are fine.

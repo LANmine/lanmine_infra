@@ -2,6 +2,6 @@
 # core1/core2 — Nexus core. Aggregates the edge switches; carries all VLANs.
 role: core
 # Downlink ports toward the edge switches carry the participant + fabric mgmt
-# VLANs as a trunk.
-edge_trunk_allowed_vlans: "1337,200"
+# + ap-mgmt + wifi VLANs as a trunk.
+edge_trunk_allowed_vlans: "1337,200,202,210"
 # vPC / peer-link would be defined here on a real dual-core build.

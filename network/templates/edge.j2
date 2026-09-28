@@ -25,24 +25,48 @@ interface Vlan{{ mgmt_vlan }}
  no shutdown
 !
 {% endif %}
+! DHCP snooping + DAI protect the DHCP-served segments (participant + wifi).
+! Bindings are built from DHCP traffic on the trusted uplink; edge ports stay
+! untrusted and are rate-limited, and ARP is validated against the bindings.
+ip dhcp snooping
+ip dhcp snooping vlan {{ access_vlan }},{{ wifi_vlan }}
+ip arp inspection vlan {{ access_vlan }},{{ wifi_vlan }}
+!
 interface range {{ access_ports }}
  description participant
  switchport mode access
  switchport access vlan {{ access_vlan }}
- ! Static public IPs on the participant VLAN — DHCP reservations are not
- ! possible logistically, so there are no snooping bindings to validate and
- ! DHCP snooping / DAI / IPSG are deliberately NOT configured (they would
- ! block static clients). Port-security + storm-control are the layer here.
+ ! DHCP-served port (auto via gateway DHCP, not static) — untrusted by default
+ ! for snooping/DAI: rate-limit DHCP and validate ARP below, with port-security
+ ! + storm-control as the outer layer.
  switchport port-security
  switchport port-security maximum 2
  switchport port-security violation restrict
  switchport port-security mac-address sticky
  spanning-tree portfast
  spanning-tree bpduguard enable
+ ip dhcp snooping limit rate 10
+ ip arp inspection limit rate 15
  storm-control broadcast level 1
 !
+{% if ap_ports is defined and ap_ports %}
+! AP ports — FlexConnect trunk: native ap-mgmt VLAN ({{ ap_mgmt_vlan }}), tagged
+! wifi VLAN ({{ wifi_vlan }}). Untrusted for snooping/DAI like any edge port:
+! clients sit behind the AP and get DHCP there.
+interface range {{ ap_ports }}
+ description ap
+ switchport mode trunk
+ switchport trunk native vlan {{ ap_mgmt_vlan }}
+ switchport trunk allowed vlan {{ ap_mgmt_vlan }},{{ wifi_vlan }}
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+{% endif %}
 interface {{ uplink_interface }}
  description uplink-to-core
  switchport mode trunk
  switchport trunk allowed vlan {{ uplink_allowed_vlans }}
+ ! Toward the DHCP server / gateway — trust snooping + DAI here.
+ ip dhcp snooping trust
+ ip arp inspection trust
 !

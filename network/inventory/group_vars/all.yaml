@@ -10,27 +10,43 @@ dns_servers:
   - 10.0.0.1
 
 # ── LAN event VLANs (production fabric: gw / core / edge) ───────────────────
-# 1337 participants — public /24 the ISP routes to us (static route to gw1);
-# participants get real public IPs, no NAT. 192.0.2.0/24 is a placeholder
-# (TEST-NET-1); swap in the real ISP allocation once confirmed.
+# 1337 participants — public /24 the ISP routes to gw1 (a static route).
+# Participants get real public IPs from a DHCP pool on gw1 (gateway-only; the
+# pool excludes the HSRP virtual/gateway addresses and the WiFi-NAT pair).
+# 192.0.2.0/24 is a placeholder (TEST-NET-1); participant_subnet in gw.yaml is
+# the single swap point for the real ISP allocation.
 # 200 mgmt — private in-band management for the fabric switches (core/edge SVI
 # addresses). No internet egress.
 # 201 servers — private operations network: the in-band Ansible runner machine
 # (gets its network from gw1/gw2) + any event ops hosts. NAT'd out via the
 # transit for internet (GitHub) — see gw.j2.
+# 202 ap-mgmt — AP management plane; APs are static 10.202.0.2-20. Sealed like
+# the switch mgmt plane (only the servers net may SSH/ICMP in, no egress).
+# WiFi client traffic is NOT here — the AP trunks it tagged on VLAN 210
+# (FlexConnect local switching).
+# 210 wifi — guest WiFi clients, DHCP from gw1 (10.210.0.100-254). RFC1918 and
+# the fabric/OOB nets are blocked by WIFI-INGRESS; outbound NAT rides the
+# participant block (192.0.2.10-11) so WiFi never spends participant public IPs.
 vlans:
   1337: participants
   200: mgmt
   201: servers
+  202: ap-mgmt
+  210: wifi
 
 # Fabric management networks, routed by gw1/gw2 (HSRP). VLAN 200 = switch
 # management; VLAN 201 = servers/operations (the in-band runner reaches the
-# switch SVIs on 200 over L3 through the gateways). The gateways' *own*
+# switch SVIs on 200 over L3 through the gateways); VLAN 202 = AP management
+# (static APs); VLAN 210 = guest WiFi (DHCP, NAT'd). The gateways' *own*
 # management stays OOB (Gi0/0 in Mgmt-vrf) — never routed on these SVIs.
 fabric_mgmt_subnet: 10.200.0.0/24
 fabric_servers_subnet: 10.201.0.0/24
+fabric_ap_mgmt_subnet: 10.202.0.0/24
+fabric_wifi_subnet: 10.210.0.0/24
 mgmt_vlan: 200
 servers_vlan: 201
+ap_mgmt_vlan: 202
+wifi_vlan: 210
 
 # Gateway OOB management subnet (Mgmt-vrf Gi0/0 → OOB router VLAN 20 gw-mgmt).
 # This is distinct from the fabric mgmt VLAN above.
