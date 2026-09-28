@@ -17,18 +17,17 @@ dns_servers:
 # purpose — it matches the existing gear's address space, not the fabric. It is a
 # bridge, not a home: renumber reused switches onto VLAN 200 (10.200.0.x) as they
 # are onboarded.
-# 100 legacy-mgmt-100 — the old edge switches' baked-in management net:
-# 10.0.0.0/24 (the historical "prod-management" / VLAN 100 scheme from before the
-# 2026-09-26 redesign). Reused edge gear keeps its config, and the gateways route
-# this segment so that edge comes up reachable as-is. Same carve-out doctrine as
-# VLAN 50, same transitional fate (renumber onto 10.200.0.x, then retire it).
-# NOTE: the "no VLAN 100" rule is ISR-scoped — the OOB router never carries it;
-# gw1/gw2 existing on it is what makes the reused edges reachable.
-# 1337 participants — public /24 the ISP routes to gw1 (a static route).
-# Participants get real public IPs from a DHCP pool on gw1 (gateway-only; the
-# pool excludes the HSRP virtual/gateway addresses and the WiFi-NAT pair).
-# 192.0.2.0/24 is a placeholder (TEST-NET-1); participant_subnet in gw.yaml is
-# the single swap point for the real ISP allocation.
+# 100 participants — the contestant network, and it is the PUBLIC /24 the ISP
+# (BLIX) statically routes to gw1. Placeholder 192.0.2.0/24 (TEST-NET-1) until
+# the real block is assigned; participant_subnet in gw.yaml is the single swap
+# point. It deliberately reuses VLAN 100 because the reused old switches (core +
+# edges) already run contestant-facing access ports on VLAN 100 «CONTESTANTS» —
+# they carry participants as-is, no retagging. Participants lease real public
+# IPs from a DHCP pool on gw1 (gateway-only; excludes the HSRP virtual/gateway
+# addresses and the WiFi-NAT pair). The «no VLAN 100» rule is ISR-scoped: the
+# OOB router never carries it (isr1111.j2 unchanged) — on the fabric, VLAN 100
+# is the primary participant net. VLAN 50 (legacy-mgmt) remains the management
+# carve for reused gear.
 # 200 mgmt — private in-band management for the fabric switches (core/edge SVI
 # addresses). No internet egress.
 # 201 servers — private operations network: the in-band Ansible runner machine
@@ -43,8 +42,7 @@ dns_servers:
 # participant block (192.0.2.10-11) so WiFi never spends participant public IPs.
 vlans:
   50: legacy-mgmt
-  100: legacy-mgmt-100
-  1337: participants
+  100: participants
   200: mgmt
   201: servers
   202: ap-mgmt
@@ -65,11 +63,6 @@ fabric_wifi_subnet: 10.210.0.0/24
 # trunk it. Sealed like the fabric mgmt plane: only the servers net may SSH/ICMP
 # in. Transitional — reused gear moves onto 10.200.0.x as it is onboarded.
 legacy_mgmt_subnet: 172.16.1.0/25
-# Second legacy segment (VLAN 100) — the old edges' baked-in mgmt net (10.0.0.0/24,
-# the pre-redesign "prod-management" scheme). Routed only by the gateways; new
-# core/edge just trunk it. Same doctrine as legacy_mgmt_subnet: transient bridge,
-# reused gear moves onto 10.200.0.x as it is onboarded.
-legacy_mgmt_100_subnet: 10.0.0.0/24
 mgmt_vlan: 200
 servers_vlan: 201
 ap_mgmt_vlan: 202
