@@ -15,12 +15,15 @@
 #
 mgmt_ip: 10.0.20.2        # GigabitEthernet0/0 in Mgmt-vrf
 
-# ISP uplink — verified on device: TenGigabitEthernet1/1/1 already has 203.0.113.2/30.
-# FortyGigabitEthernet1/1/1 is present but unused.
-# TODO: replace ISP address with real linknett /30 once ISP hands off for LM42.
+# ISP uplink — TenGigabitEthernet1/1/1: the BLIX transit linknet 91.205.184.252/30.
+# gw1 owns .254; BLIX's router is .253. The participant /24 (statically routed to
+# gw1 by BLIX) is still pending — participant_subnet in group_vars/gw.yaml keeps
+# the 192.0.2.0/24 placeholder until it lands (single swap point). The 2026-02-05
+# linknet is from the HvalerLan circuit. FortyGigabitEthernet1/1/1 is present but
+# unused.
 isp_interface: TenGigabitEthernet1/1/1
-isp_address: 203.0.113.2/30
-isp_gateway: 203.0.113.1
+isp_address: 91.205.184.254/30
+isp_gateway: 91.205.184.253
 
 # Core uplink interfaces (trunk to core1/core2).
 core1_interface: FortyGigabitEthernet1/1/2
