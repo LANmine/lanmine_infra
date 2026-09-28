@@ -16,14 +16,8 @@ dns_servers:
 # in, with no factory reset. NOTE: breaks the "third octet = VLAN" convention on
 # purpose — it matches the existing gear's address space, not the fabric. It is a
 # bridge, not a home: renumber reused switches onto VLAN 200 (10.200.0.x) as they
-# are onboarded.
-# 100 legacy-mgmt-100 — the old edge switches' baked-in management net:
-# 10.0.0.0/24 (the historical "prod-management" / VLAN 100 scheme from before the
-# 2026-09-26 redesign). Reused edge gear keeps its config, and the gateways route
-# this segment so that edge comes up reachable as-is. Same carve-out doctrine as
-# VLAN 50, same transitional fate (renumber onto 10.200.0.x, then retire it).
-# NOTE: the "no VLAN 100" rule is ISR-scoped — the OOB router never carries it;
-# gw1/gw2 existing on it is what makes the reused edges reachable.
+# are onboarded. The reused edges carry the same mgmt net as the core (they were
+# provisioned from it), so this single segment covers all reused switches.
 # 1337 participants — public /24 the ISP routes to gw1 (a static route).
 # Participants get real public IPs from a DHCP pool on gw1 (gateway-only; the
 # pool excludes the HSRP virtual/gateway addresses and the WiFi-NAT pair).
@@ -43,7 +37,6 @@ dns_servers:
 # participant block (192.0.2.10-11) so WiFi never spends participant public IPs.
 vlans:
   50: legacy-mgmt
-  100: legacy-mgmt-100
   1337: participants
   200: mgmt
   201: servers
@@ -61,15 +54,11 @@ fabric_ap_mgmt_subnet: 10.202.0.0/24
 fabric_wifi_subnet: 10.210.0.0/24
 
 # Legacy management segment (VLAN 50) — the baked-in mgmt net of the reused old
-# switches. Routed only by the gateways (SVI 172.16.1.1/25); new core/edge just
-# trunk it. Sealed like the fabric mgmt plane: only the servers net may SSH/ICMP
-# in. Transitional — reused gear moves onto 10.200.0.x as it is onboarded.
+# switches (core + edges, which mirror the core). Routed only by the gateways
+# (SVI 172.16.1.1/25); new core/edge just trunk it. Sealed like the fabric mgmt
+# plane: only the servers net may SSH/ICMP in. Transitional — reused gear moves
+# onto 10.200.0.x as it is onboarded.
 legacy_mgmt_subnet: 172.16.1.0/25
-# Second legacy segment (VLAN 100) — the old edges' baked-in mgmt net (10.0.0.0/24,
-# the pre-redesign "prod-management" scheme). Routed only by the gateways; new
-# core/edge just trunk it. Same doctrine as legacy_mgmt_subnet: transient bridge,
-# reused gear moves onto 10.200.0.x as it is onboarded.
-legacy_mgmt_100_subnet: 10.0.0.0/24
 mgmt_vlan: 200
 servers_vlan: 201
 ap_mgmt_vlan: 202
