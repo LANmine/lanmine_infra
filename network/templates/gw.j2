@@ -177,6 +177,11 @@ ip dhcp pool PARTICIPANTS
  dns-server {{ participant_dns }}
 !
 {% endif %}
+line vty 0 31
+ exec-timeout 0 0
+ login local
+ transport input ssh
+!
 ! Gateway host management is OOB-only: Gi0/0 (Mgmt-vrf) carries {{ mgmt_ip }}
 ! to the OOB router. The *fabric* switch-mgmt (VLAN 200) and servers (VLAN 201)
 ! networks are the in-band SVIs above, alongside the legacy management segment
