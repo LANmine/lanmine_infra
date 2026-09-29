@@ -60,6 +60,7 @@ interface {{ core2_interface }}
 ! Spare trunk — plug any core/switch in and it carries all fabric VLANs.
 interface {{ t.iface }}
  description {{ t.description }}
+ switchport
  switchport mode trunk
  switchport trunk allowed vlan {{ core_uplink_allowed_vlans }}
 !
