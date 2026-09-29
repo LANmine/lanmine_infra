@@ -63,6 +63,7 @@ fabric_wifi_subnet: 10.210.0.0/24
 # trunk it. Sealed like the fabric mgmt plane: only the servers net may SSH/ICMP
 # in. Transitional — reused gear moves onto 10.200.0.x as it is onboarded.
 legacy_mgmt_subnet: 172.16.1.0/25
+participant_vlan: 100
 mgmt_vlan: 200
 servers_vlan: 201
 ap_mgmt_vlan: 202
