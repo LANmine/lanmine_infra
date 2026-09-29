@@ -4,6 +4,13 @@
 # gw2 is warm standby. Uplink addressing is per-device in host_vars/gw1.yaml
 # (and host_vars/gw2.yaml once it gets specifics).
 role: gw
+
+# NTP: sourced from the ISP-facing interface so queries route via the transit
+# link, not the OOB management port (which has no internet egress).
+ntp_servers:
+  - 216.239.35.0
+  - 216.239.35.4
+ntp_source_interface: "{{ isp_interface }}"
 # Ansible uses enable secret for privilege escalation on IOS.
 ansible_become: true
 ansible_become_method: enable

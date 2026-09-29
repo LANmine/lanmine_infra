@@ -5,7 +5,8 @@ ip domain name {{ domain_name }}
 ip routing
 !
 {% for ntp in ntp_servers %}
-ntp server {{ ntp }}
+ntp server {{ ntp }}{% if ntp_source_interface is defined %} source {{ ntp_source_interface }}{% endif %}
+
 {% endfor %}
 !
 {% if snmp_community %}
