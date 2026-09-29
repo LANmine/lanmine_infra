@@ -14,12 +14,12 @@ ansible_become_password: "{{ lookup('env', 'NET_PASSWORD') }}"
 isp_address: 203.0.113.2/30
 isp_gateway: 203.0.113.1
 mgmt_ip: 10.0.20.2   # OOB router VLAN 20 (gw-mgmt); real value per host in host_vars
-# Participant public /24 — the block the ISP (BLIX) statically routes to gw1.
-# Placeholder 192.0.2.0/24 (TEST-NET-1). This is the single swap point for the
-# real ISP allocation: it feeds the PARTICIPANT-INGRESS ACL, the participant DHCP
-# pool and the WiFi-NAT pool addresses in gw.j2, so a swap touches nothing else.
-# The mask is assumed /24 today — parameterize when the real block lands.
-participant_subnet: 192.0.2.0/24
+# Participant public /24 — the block BLIX statically routes to gw1 (temporary
+# event allocation for HvalerLAN). This is the single swap point: it feeds the
+# PARTICIPANT-INGRESS ACL, the participant DHCP pool and the WiFi-NAT pool
+# addresses in gw.j2, so a swap touches nothing else. The mask is assumed /24
+# today — parameterize when the real block's mask differs.
+participant_subnet: 185.12.58.0/24
 # DNS handed to participants + WiFi clients. Public resolver by default; swap for
 # the ISP's DNS at handoff if preferred.
 participant_dns: 1.1.1.1
@@ -49,7 +49,7 @@ server_access_ports: "GigabitEthernet1/0/45 - 48"
 # management nets ARE the in-band SVIs below. TODO: confirm against NetBox.
 hsrp_groups:
   - {vlan: 50, virtual_ip: 172.16.1.1, role: legacy_mgmt, mask: 255.255.255.128}   # reused old switches' baked-in mgmt (172.16.1.0/25)
-  - {vlan: 100, virtual_ip: 192.0.2.1, role: participant}   # contestant/public /24 — placeholder until BLIX assigns the real block; DHCP from gw1
+  - {vlan: 100, virtual_ip: 185.12.58.1, role: participant}   # contestant/public /24 — BLIX 185.12.58.0/24 (temporary); DHCP from gw1
   - {vlan: 200, virtual_ip: 10.200.0.1, role: mgmt}          # fabric switch management
   - {vlan: 201, virtual_ip: 10.201.0.1, role: servers}       # operations / in-band runner
   - {vlan: 202, virtual_ip: 10.202.0.1, role: ap_mgmt}       # AP management (static APs, sealed)
