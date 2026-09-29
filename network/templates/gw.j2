@@ -3,6 +3,8 @@
 hostname {{ inventory_hostname }}
 ip domain name {{ domain_name }}
 ip routing
+clock timezone CET 1 0
+clock summer-time CEST recurring last Sun Mar 2:00 last Sun Oct 3:00
 !
 {% for ntp in ntp_servers %}
 ntp server {{ ntp }}{% if ntp_source_interface is defined %} source {{ ntp_source_interface }}{% endif %}
