@@ -87,6 +87,16 @@ interface range {{ gw_participant_ports }}
  storm-control broadcast level 1
 !
 {% endif %}
+{% if gw_servers_ports is defined and gw_servers_ports %}
+! Ops/servers access ports — VLAN 201, NAT'd internet (Tailscale etc.). gw1-only.
+interface range {{ gw_servers_ports }}
+ description ops
+ switchport mode access
+ switchport access vlan {{ servers_vlan }}
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+{% endif %}
 ! First-hop redundancy: gw1 primary, gw2 backup (priority from inventory).
 ! Clients/switches use the virtual IP (.1); gw1 owns .2 on each SVI, gw2 owns .3.
 {% for g in hsrp_groups %}

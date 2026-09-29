@@ -49,3 +49,7 @@ dhcp_server: true
 # Port-security is non-sticky (violation restrict) so test MACs don't pin; same
 # untrusted-edge doctrine as the server ports. These are gw1-only, not on gw2.
 gw_participant_ports: "GigabitEthernet1/0/1 - 2"
+
+# Ops/servers access ports — direct 1G copper on the servers VLAN 201.
+# NAT'd internet (for Tailscale, SSH out etc.). gw1-only.
+gw_servers_ports: "GigabitEthernet1/0/10 - 12"
