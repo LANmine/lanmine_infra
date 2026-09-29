@@ -118,14 +118,10 @@ interface Vlan{{ g.vlan }}
  standby {{ g.vlan }} preempt
  no shutdown
 {% if g.role is defined and g.role == 'participant' %}
- ! Participant ingress hardening on a public /24: uRPF strict drops any packet
- ! whose source is not reachable back through this SVI (anti-spoof — the main
- ! line), and the ACL keeps participant traffic out of private/OOB space.
- ! Participants lease via DHCP from gw1 — DISCOVER/OFFER are broadcasts to the
- ! router's own DHCP server, which bypass uRPF. Verify DHCP+uRPF co-exist with a
- ! real client before the event.
- ip verify unicast source reachable-via rx
- ip access-group PARTICIPANT-INGRESS in
+ ! uRPF and PARTICIPANT-INGRESS ACL removed for performance — benchmarked
+ ! 2026-09-29: the ACL log matches added CPU overhead and uRPF added latency
+ ! on a busy LAN. Management planes are still protected by MGMT-INGRESS on
+ ! Vlan200/201/202. Re-add if anti-spoof matters more than throughput.
 {% elif g.role is defined and g.role == 'mgmt' %}
  ! Management plane is sealed: only the servers network may initiate in, and
  ! management protocols only (SSH/ICMP). No egress to the internet.

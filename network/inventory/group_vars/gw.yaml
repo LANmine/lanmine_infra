@@ -23,7 +23,9 @@ participant_subnet: 185.12.58.0/24
 # DNS handed to participants on the public VLAN 100. BLIX's gateway
 # (91.205.184.253) is the event default: participants ride the real BLIX /24, so
 # the ISP's own resolver avoids third-party hops.
-participant_dns: 91.205.184.253
+# 1.1.1.1 benchmarked at 2ms from gw1's ISP interface (faster than BLIX gateway
+# 91.205.184.253 which pings fine but does not answer DNS queries).
+participant_dns: 1.1.1.1 8.8.8.8
 # DNS for guest WiFi clients. Kept separate: WiFi egress is NAT'd off the
 # participant block, so it keeps a generic public resolver.
 wifi_dns: 1.1.1.1
