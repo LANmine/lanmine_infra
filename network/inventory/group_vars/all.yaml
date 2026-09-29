@@ -18,9 +18,9 @@ dns_servers:
 # bridge, not a home: renumber reused switches onto VLAN 200 (10.200.0.x) as they
 # are onboarded.
 # 100 participants — the contestant network, and it is the PUBLIC /24 the ISP
-# (BLIX) statically routes to gw1. Placeholder 192.0.2.0/24 (TEST-NET-1) until
-# the real block is assigned; participant_subnet in gw.yaml is the single swap
-# point. It deliberately reuses VLAN 100 because the reused old switches (core +
+# (BLIX) statically routes to gw1: 185.12.58.0/24 (temporary event allocation,
+# HvalerLAN). participant_subnet in gw.yaml is the single swap point. It
+# deliberately reuses VLAN 100 because the reused old switches (core +
 # edges) already run contestant-facing access ports on VLAN 100 «CONTESTANTS» —
 # they carry participants as-is, no retagging. Participants lease real public
 # IPs from a DHCP pool on gw1 (gateway-only; excludes the HSRP virtual/gateway
@@ -39,7 +39,7 @@ dns_servers:
 # (FlexConnect local switching).
 # 210 wifi — guest WiFi clients, DHCP from gw1 (10.210.0.100-254). RFC1918 and
 # the fabric/OOB nets are blocked by WIFI-INGRESS; outbound NAT rides the
-# participant block (192.0.2.10-11) so WiFi never spends participant public IPs.
+# participant block (185.12.58.10-11) so WiFi never spends participant public IPs.
 vlans:
   50: legacy-mgmt
   100: participants
