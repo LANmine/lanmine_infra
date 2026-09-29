@@ -30,8 +30,8 @@ interface Vlan{{ mgmt_vlan }}
 ! Bindings are built from DHCP traffic on the trusted uplink; edge ports stay
 ! untrusted and are rate-limited, and ARP is validated against the bindings.
 ip dhcp snooping
-ip dhcp snooping vlan {{ access_vlan }},{{ wifi_vlan }}
-ip arp inspection vlan {{ access_vlan }},{{ wifi_vlan }}
+ip dhcp snooping vlan {{ access_vlan }}
+ip arp inspection vlan {{ access_vlan }}
 !
 interface range {{ access_ports }}
  description participant
@@ -50,19 +50,6 @@ interface range {{ access_ports }}
  ip arp inspection limit rate 15
  storm-control broadcast level 1
 !
-{% if ap_ports is defined and ap_ports %}
-! AP ports — FlexConnect trunk: native ap-mgmt VLAN ({{ ap_mgmt_vlan }}), tagged
-! wifi VLAN ({{ wifi_vlan }}). Untrusted for snooping/DAI like any edge port:
-! clients sit behind the AP and get DHCP there.
-interface range {{ ap_ports }}
- description ap
- switchport mode trunk
- switchport trunk native vlan {{ ap_mgmt_vlan }}
- switchport trunk allowed vlan {{ ap_mgmt_vlan }},{{ wifi_vlan }}
- spanning-tree portfast
- spanning-tree bpduguard enable
-!
-{% endif %}
 interface {{ uplink_interface }}
  description uplink-to-core
  switchport mode trunk
