@@ -20,19 +20,25 @@ mgmt_ip: 10.0.20.2   # OOB router VLAN 20 (gw-mgmt); real value per host in host
 # addresses in gw.j2, so a swap touches nothing else. The mask is assumed /24
 # today — parameterize when the real block's mask differs.
 participant_subnet: 185.12.58.0/24
-# DNS handed to participants + WiFi clients. Public resolver by default; swap for
-# the ISP's DNS at handoff if preferred.
-participant_dns: 1.1.1.1
+# DNS handed to participants on the public VLAN 100. BLIX's gateway
+# (91.205.184.253) is the event default: participants ride the real BLIX /24, so
+# the ISP's own resolver avoids third-party hops.
+participant_dns: 91.205.184.253
+# DNS for guest WiFi clients. Kept separate: WiFi egress is NAT'd off the
+# participant block, so it keeps a generic public resolver.
+wifi_dns: 1.1.1.1
 # Interface names vary by hardware — override in host_vars.
 isp_interface: TenGigabitEthernet1/1/1
 core1_interface: TenGigabitEthernet1/1/2
 core2_interface: TenGigabitEthernet1/1/3
 
-# Uplinks to the core switches carry the fabric VLANs as a trunk: legacy-mgmt
-# (VLAN 50) + participant (VLAN 100) + switch mgmt + ap-mgmt + wifi. The servers
+# Uplinks to the core switches carry the fabric VLANs as a trunk. Incremental
+# event bring-up (2026-09-29): only legacy-mgmt (VLAN 50) + participant
+# (VLAN 100) ride the trunks today — the fabric VLANs 200/201/202/210 stay OFF
+# the cores until the core rebuild lands; re-extend this list then. The servers
 # VLAN is gateway-local: only the in-band runner plugs into it (a gateway access
-# port), so it does not ride the uplinks.
-core_uplink_allowed_vlans: "50,100,200,202,210"
+# port), so it never rides the uplinks.
+core_uplink_allowed_vlans: "50,100"
 
 # Access ports that host the in-band operations machines (the Ansible runner
 # machine + spares), on the servers VLAN.

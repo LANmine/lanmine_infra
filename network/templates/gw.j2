@@ -83,6 +83,24 @@ interface range {{ gw_ap_ports }}
  spanning-tree bpduguard enable
 !
 {% endif %}
+{% if gw_participant_ports is defined and gw_participant_ports %}
+! Participant test access ports — direct 1G copper on the participant VLAN
+! ({{ participant_vlan }}, the public contestant net). LM42 pre-event DHCP+uRPF
+! test path. Treated like any untrusted edge port; port-security is NON-sticky
+! so test MACs don't pin. gw1-only. Transitional: participant access belongs on
+! fabric edges, not gateway copper — move when a fabric edge is deployed.
+interface range {{ gw_participant_ports }}
+ description participant
+ switchport mode access
+ switchport access vlan {{ participant_vlan }}
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ storm-control broadcast level 1
+!
+{% endif %}
 ! First-hop redundancy: gw1 primary, gw2 backup (priority from inventory).
 ! Clients/switches use the virtual IP (.1); gw1 owns .2 on each SVI, gw2 owns .3.
 {% for g in hsrp_groups %}
@@ -208,7 +226,7 @@ ip dhcp excluded-address {{ w[0] }}.{{ w[1] }}.{{ w[2] }}.1 {{ w[0] }}.{{ w[1] }
 ip dhcp pool WIFI
  network {{ w[0] }}.{{ w[1] }}.{{ w[2] }}.0 {{ fabric_wifi_subnet | ansible.utils.ipaddr('netmask') }}
  default-router {{ w[0] }}.{{ w[1] }}.{{ w[2] }}.1
- dns-server {{ participant_dns }}
+ dns-server {{ wifi_dns }}
  domain-name {{ domain_name }}
 !
 {% endif %}
