@@ -24,13 +24,19 @@ isp_interface: TenGigabitEthernet1/1/1
 isp_address: 91.205.184.254/30
 isp_gateway: 91.205.184.253
 
-# Core uplink interfaces (trunk to core1/core2). Live truth 2026-09-29: the
-# soldered-down core links are 10G TenGigabitEthernet1/1/2 (core1) + 1/1/3
-# (core2) — NOT the 40G/25G module slots. host_vars overrode these to
-# FortyGigabitEthernet1/1/2/TwentyFiveGigE1/1/1 before the gateways were wired;
-# reconciled to the real ports. gw2 mirrors this on its own module ports.
+# Core uplink interfaces (trunk to core1/core2).
 core1_interface: TenGigabitEthernet1/1/2
 core2_interface: TenGigabitEthernet1/1/3
+
+# Additional uplink ports ready for extra core/switch connections.
+# All configured as trunks carrying the same VLAN list as the primary core links.
+# Fo1/1/1 is labelled uplink-isp but is NOT the ISP port (Te1/1/1 is) — repurposed.
+# Tw1/1/2 is unconfigured on the device; this brings it in line with the others.
+extra_trunk_interfaces:
+  - {iface: FortyGigabitEthernet1/1/1, description: spare-trunk-1}
+  - {iface: FortyGigabitEthernet1/1/2, description: spare-trunk-2}
+  - {iface: TwentyFiveGigE1/1/1,       description: spare-trunk-3}
+  - {iface: TwentyFiveGigE1/1/2,       description: spare-trunk-4}
 
 # DHCP server for the participant (VLAN 100 — the public contestant net) and
 # WiFi (210) segments. gw1 only by design: pools live in gw.j2 behind this flag,

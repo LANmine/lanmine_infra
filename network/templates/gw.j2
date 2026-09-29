@@ -56,6 +56,15 @@ interface {{ core2_interface }}
  switchport mode trunk
  switchport trunk allowed vlan {{ core_uplink_allowed_vlans }}
 !
+{% for t in (extra_trunk_interfaces | default([])) %}
+! Spare trunk — plug any core/switch in and it carries all fabric VLANs.
+interface {{ t.iface }}
+ description {{ t.description }}
+ switchport mode trunk
+ switchport trunk allowed vlan {{ core_uplink_allowed_vlans }}
+!
+{% endfor %}
+!
 ! Server access ports — the in-band Ansible runner machine (+ spares) on the
 ! servers VLAN. Treated like any untrusted edge port: port-security + storm
 ! control, no STP loops.
