@@ -45,8 +45,6 @@ vlans:
   100: participants
   200: mgmt
   201: servers
-  202: ap-mgmt
-  210: wifi
 
 # Fabric management networks, routed by gw1/gw2 (HSRP). VLAN 200 = switch
 # management; VLAN 201 = servers/operations (the in-band runner reaches the
@@ -55,8 +53,6 @@ vlans:
 # management stays OOB (Gi0/0 in Mgmt-vrf) — never routed on these SVIs.
 fabric_mgmt_subnet: 10.200.0.0/24
 fabric_servers_subnet: 10.201.0.0/24
-fabric_ap_mgmt_subnet: 10.202.0.0/24
-fabric_wifi_subnet: 10.210.0.0/24
 
 # Legacy management segment (VLAN 50) — the baked-in mgmt net of the reused old
 # switches. Routed only by the gateways (SVI 172.16.1.1/25); new core/edge just
@@ -66,8 +62,6 @@ legacy_mgmt_subnet: 172.16.1.0/25
 participant_vlan: 100
 mgmt_vlan: 200
 servers_vlan: 201
-ap_mgmt_vlan: 202
-wifi_vlan: 210
 
 # Gateway OOB management subnet (Mgmt-vrf Gi0/0 → OOB router VLAN 20 gw-mgmt).
 # This is distinct from the fabric mgmt VLAN above.

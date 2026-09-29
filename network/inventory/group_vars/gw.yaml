@@ -28,7 +28,6 @@ participant_subnet: 185.12.58.0/24
 participant_dns: 1.1.1.1 8.8.8.8
 # DNS for guest WiFi clients. Kept separate: WiFi egress is NAT'd off the
 # participant block, so it keeps a generic public resolver.
-wifi_dns: 1.1.1.1
 # Interface names vary by hardware — override in host_vars.
 isp_interface: TenGigabitEthernet1/1/1
 core1_interface: TenGigabitEthernet1/1/2

@@ -44,11 +44,6 @@ extra_trunk_interfaces:
 # failover but no new leases are issued — acceptable for an event network).
 dhcp_server: true
 
-# AP host ports — FlexConnect trunks (native ap-mgmt VLAN 202, tagged wifi 210).
-# Ports are free/unused on gw1 (no cable = inert config). This is the LM42 path
-# until a fabric edge is deployed that should host the APs instead.
-gw_ap_ports: "GigabitEthernet1/0/41 - 42"
-
 # Participant test access ports — direct 1G copper to the participant VLAN 100
 # (the public contestant net), used as the LM42 pre-event DHCP+uRPF test path.
 # Port-security is non-sticky (violation restrict) so test MACs don't pin; same
