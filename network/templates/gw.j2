@@ -152,6 +152,8 @@ ip access-list extended PARTICIPANT-INGRESS
 ip access-list extended MGMT-INGRESS
  permit icmp {{ fabric_servers_subnet | ansible.utils.ipaddr('network') }} {{ fabric_servers_subnet | ansible.utils.ipaddr('hostmask') }} any
  permit tcp {{ fabric_servers_subnet | ansible.utils.ipaddr('network') }} {{ fabric_servers_subnet | ansible.utils.ipaddr('hostmask') }} any eq 22
+ permit icmp {{ legacy_mgmt_subnet | ansible.utils.ipaddr('network') }} {{ legacy_mgmt_subnet | ansible.utils.ipaddr('hostmask') }} any
+ permit tcp {{ legacy_mgmt_subnet | ansible.utils.ipaddr('network') }} {{ legacy_mgmt_subnet | ansible.utils.ipaddr('hostmask') }} any eq 22
  deny ip any any log
 !
 ! Outbound NAT for the servers network (in-band runner → GitHub/API). Swap-in
