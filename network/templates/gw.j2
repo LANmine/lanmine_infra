@@ -67,21 +67,6 @@ interface {{ t.iface }}
 !
 {% endfor %}
 !
-! Server access ports — the in-band Ansible runner machine (+ spares) on the
-! servers VLAN. Treated like any untrusted edge port: port-security + storm
-! control, no STP loops.
-interface range {{ server_access_ports }}
- description server
- switchport mode access
- switchport access vlan {{ servers_vlan }}
- switchport port-security
- switchport port-security maximum 2
- switchport port-security violation restrict
- switchport port-security mac-address sticky
- spanning-tree portfast
- spanning-tree bpduguard enable
- storm-control broadcast level 1
-!
 {% if gw_participant_ports is defined and gw_participant_ports %}
 ! Participant test access ports — direct 1G copper on the participant VLAN
 ! ({{ participant_vlan }}, the public contestant net). LM42 pre-event DHCP+uRPF

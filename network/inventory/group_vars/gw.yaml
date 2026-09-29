@@ -50,7 +50,6 @@ core_uplink_allowed_vlans: "50,100"
 
 # Access ports that host the in-band operations machines (the Ansible runner
 # machine + spares), on the servers VLAN.
-server_access_ports: "GigabitEthernet1/0/45 - 48"
 
 # HSRP virtual gateways — one per routed VLAN. The role field selects the role the
 # gw.j2 SVI loop special-cases: participant = uRPF + PARTICIPANT-INGRESS,
