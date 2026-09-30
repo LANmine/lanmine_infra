@@ -2,6 +2,8 @@
 ! Rendered from git. Do not edit on the device.
 hostname {{ inventory_hostname }}
 !
+feature lldp
+!
 {% for ntp in ntp_servers %}
 ntp server {{ ntp }}
 {% endfor %}
