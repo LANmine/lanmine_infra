@@ -13,7 +13,7 @@
 # Real devices today:
 #   oob     — ISR 1111, year-round OOB management router (VLAN 10, 10.0.10.0/24)
 #   gw      — gw1 (WS-C9300-48P, primary) + gw2 (WS-C9300-48P, warm standby).
-#              Mgmt is OOB: Gi0/0 in Mgmt-vrf at 10.0.20.2/24 (gw1) /
+#              Mgmt: gw1 = 10.0.20.4 (global VRF Gi1/0/48), gw2 = 10.0.20.3 (Mgmt-vrf Gi0/0) /
 #              10.0.20.3/24 (gw2), gateway 10.0.20.1 (ISR VLAN 20 gw-mgmt).
 #
 # LAN event topology (LM42 / future) uses placeholder IPs until ISP handoff.
@@ -41,7 +41,7 @@ all:
         ansible_network_os: cisco.ios.ios
       hosts:
         gw1:
-          ansible_host: 10.0.20.4   # Gi0/0 Mgmt-vrf (WS-C9300-48P)
+          ansible_host: 10.0.20.4   # Vlan20 global VRF via Gi1/0/48 (WS-C9300-48P)
           hsrp_priority: 110        # primary — holds the ISP SFP
         gw2:
           ansible_host: 10.0.20.3   # Gi0/0 Mgmt-vrf (WS-C9300-48P)
