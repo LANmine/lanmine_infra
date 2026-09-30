@@ -163,7 +163,7 @@ ip access-list extended MGMT-INGRESS
  10 permit icmp {{ fabric_servers_subnet | ansible.utils.ipaddr('network') }} {{ fabric_servers_subnet | ansible.utils.ipaddr('hostmask') }} any
  20 permit tcp {{ fabric_servers_subnet | ansible.utils.ipaddr('network') }} {{ fabric_servers_subnet | ansible.utils.ipaddr('hostmask') }} any eq 22
  30 permit icmp {{ legacy_mgmt_subnet | ansible.utils.ipaddr('network') }} {{ legacy_mgmt_subnet | ansible.utils.ipaddr('hostmask') }} any
- 40 permit tcp {{ legacy_mgmt_subnet | ansible.utils.ipaddr('network') }} {{ legacy_mgmt_subnet | ansible.utils.ipaddr('hostmask') }} any eq 22
+ 40 permit tcp {{ legacy_mgmt_subnet | ansible.utils.ipaddr('network') }} {{ legacy_mgmt_subnet | ansible.utils.ipaddr('hostmask') }} any
  50 deny ip any any
 !
 ! Outbound NAT for the servers network (in-band runner → GitHub/API). Swap-in
