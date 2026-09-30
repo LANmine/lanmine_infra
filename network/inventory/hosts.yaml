@@ -41,7 +41,7 @@ all:
         ansible_network_os: cisco.ios.ios
       hosts:
         gw1:
-          ansible_host: 10.0.20.2   # Gi0/0 Mgmt-vrf (WS-C9300-48P)
+          ansible_host: 10.0.20.4   # Gi0/0 Mgmt-vrf (WS-C9300-48P)
           hsrp_priority: 110        # primary — holds the ISP SFP
         gw2:
           ansible_host: 10.0.20.3   # Gi0/0 Mgmt-vrf (WS-C9300-48P)
