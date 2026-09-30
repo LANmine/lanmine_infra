@@ -189,7 +189,26 @@ ip dhcp pool PARTICIPANTS
  dns-server {{ participant_dns }}
 !
 {% endif %}
+ip access-list standard MGMT-SSH
+ 10 permit 10.0.10.0 0.0.0.255
+ 20 permit 10.0.20.0 0.0.0.255
+ 30 permit 172.16.1.0 0.0.0.127
+ 40 permit 10.201.0.0 0.0.0.255
+!
+ip access-list extended ISP-INGRESS
+ 10 permit ip any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }}
+ 20 permit tcp any any established
+ 30 permit udp any host {{ isp_address | ansible.utils.ipaddr('address') }}
+ 40 permit icmp any host {{ isp_address | ansible.utils.ipaddr('address') }} echo-reply
+ 50 permit icmp any host {{ isp_address | ansible.utils.ipaddr('address') }} unreachable
+ 60 permit icmp any host {{ isp_address | ansible.utils.ipaddr('address') }} time-exceeded
+ 70 deny ip any any log
+!
+interface {{ isp_interface }}
+ ip access-group ISP-INGRESS in
+!
 line vty 0 31
+ access-class MGMT-SSH in vrf-also
  exec-timeout 0 0
  login local
  transport input ssh
