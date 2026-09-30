@@ -164,7 +164,7 @@ ip access-list extended MGMT-INGRESS
  20 permit tcp {{ fabric_servers_subnet | ansible.utils.ipaddr('network') }} {{ fabric_servers_subnet | ansible.utils.ipaddr('hostmask') }} any eq 22
  30 permit icmp {{ legacy_mgmt_subnet | ansible.utils.ipaddr('network') }} {{ legacy_mgmt_subnet | ansible.utils.ipaddr('hostmask') }} any
  40 permit tcp {{ legacy_mgmt_subnet | ansible.utils.ipaddr('network') }} {{ legacy_mgmt_subnet | ansible.utils.ipaddr('hostmask') }} any eq 22
- 50 deny ip any any log
+ 50 deny ip any any
 !
 ! Outbound NAT for the servers network (in-band runner → GitHub/API). Swap-in
 ! point: rides the same isp_interface/isp_address vars as the transit.
@@ -202,7 +202,7 @@ ip access-list extended ISP-INGRESS
  40 permit icmp any host {{ isp_address | ansible.utils.ipaddr('address') }} echo-reply
  50 permit icmp any host {{ isp_address | ansible.utils.ipaddr('address') }} unreachable
  60 permit icmp any host {{ isp_address | ansible.utils.ipaddr('address') }} time-exceeded
- 70 deny ip any any log
+ 70 deny ip any any
 !
 interface {{ isp_interface }}
  ip access-group ISP-INGRESS in
