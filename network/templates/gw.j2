@@ -181,7 +181,7 @@ ip nat inside source list SERVERS-NAT interface {{ isp_interface }} overload
 {% set p = participant_subnet.split('/')[0].split('.') %}
 service dhcp
 !
-! Participant leases .20-.250; .1-.19 held (HSRP virtual .1, gw1 .2, gw2 .3 + buffer).
+! Participant leases .20-.254; .1-.19 held (HSRP virtual .1, gw1 .2, gw2 .3 + buffer).
 ip dhcp excluded-address {{ p[0] }}.{{ p[1] }}.{{ p[2] }}.1 {{ p[0] }}.{{ p[1] }}.{{ p[2] }}.19
 ip dhcp pool PARTICIPANTS
  network {{ p[0] }}.{{ p[1] }}.{{ p[2] }}.0 {{ participant_subnet | ansible.utils.ipaddr('netmask') }}
