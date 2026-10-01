@@ -53,3 +53,16 @@ aaa new-model
 aaa authentication login default local
 aaa authorization exec default local
 !
+{% if ssh_admin_pubkey is defined %}
+! SSH public key for the lanmine-device-access key pair.
+! IOS requires the base64 blob in ≤72-char lines inside key-string mode.
+ip ssh pubkey-chain
+ username admin
+  key-string
+{% for chunk in ssh_admin_pubkey | list | batch(72) %}
+  {{ chunk | join('') }}
+{% endfor %}
+  exit
+ exit
+!
+{% endif %}
