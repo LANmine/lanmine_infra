@@ -195,8 +195,21 @@ ip access-list standard MGMT-SSH
  30 permit 172.16.1.0 0.0.0.127
  40 permit 10.201.0.0 0.0.0.255
 !
+! Minimum protection for participant public IPs: block unsolicited inbound
+! connections to common attack-surface ports (SSH/Telnet/Windows file-sharing/
+! RDP/VNC) before the broad permit below. Participants keep full outbound use
+! of these ports and everything else (game hosting, inbound UDP, other TCP
+! ports) stays exactly as open as before — this only closes the ports nobody
+! legitimately needs reachable from the internet during the event.
 ip access-list extended ISP-INGRESS
- 10 permit ip any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }}
+ 5 deny tcp any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }} eq 22
+ 6 deny tcp any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }} eq 23
+ 7 deny tcp any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }} eq 135
+ 8 deny tcp any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }} eq 139
+ 9 deny tcp any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }} eq 445
+ 11 deny tcp any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }} eq 3389
+ 12 deny tcp any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }} eq 5900
+ 15 permit ip any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }}
  20 permit tcp any any established
  30 permit udp any host {{ isp_address | ansible.utils.ipaddr('address') }}
  40 permit icmp any host {{ isp_address | ansible.utils.ipaddr('address') }} echo-reply
