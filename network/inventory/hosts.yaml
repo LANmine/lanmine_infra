@@ -60,8 +60,10 @@ all:
       vars:
         ansible_network_os: cisco.ios.ios
       hosts:
+        edge03: {ansible_host: 172.16.1.13}   # WS-C2960X-48FPD, legacy-mgmt Vlan50
         edge04: {ansible_host: 172.16.1.14}   # WS-C2960X-48FPD, legacy-mgmt Vlan50
         edge05: {ansible_host: 172.16.1.15}   # WS-C2960X-48FPD, legacy-mgmt Vlan50
         edge06: {ansible_host: 172.16.1.16}   # WS-C2960X-48LPD, legacy-mgmt Vlan50
+        edge09: {ansible_host: 172.16.1.19}   # WS-C2960X-48FPD, legacy-mgmt Vlan50
         edge13: {ansible_host: 172.16.1.23}   # WS-C2960X-48LPD, legacy-mgmt Vlan50
         # edge11: {ansible_host: 172.16.1.21}  # WS-C2960X-48LPD — no SSH yet (needs console)
