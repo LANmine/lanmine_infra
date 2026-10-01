@@ -1,4 +1,4 @@
-! {{ inventory_hostname }} — edge access switch (Cisco IOS)
+! {{ inventory_hostname }} — edge access switch (Cisco IOS, WS-C2960X)
 ! Rendered from git. Do not edit on the device.
 hostname {{ inventory_hostname }}
 ip domain name {{ domain_name }}
@@ -15,46 +15,41 @@ ntp server {{ ntp }}
 snmp-server community {{ snmp_community }} RO
 {% endif %}
 !
-{% if mgmt_vlan is defined and mgmt_vlan %}
-! In-band management SVI on the fabric mgmt VLAN (mgmt_vlan: 200) — reachable
-! from the servers network through the gateways. The gateway's *own* management
-! is OOB (Gi0/0 Mgmt-vrf) on a different address. VLAN 100 on this box is the
-! public participant network, not management.
-interface Vlan{{ mgmt_vlan }}
- description management
- ip address {{ mgmt_ip | default(ansible_host) }} 255.255.255.0
+! Legacy management segment (VLAN 50 / 172.16.1.0/25). These switches come with
+! this address baked in — kept as-is so they are reachable without a factory
+! reset. The gateway (172.16.1.1) is the HSRP VIP on gw1/gw2 Vlan50.
+interface Vlan50
+ description legacy-mgmt
+ ip address {{ ansible_host }} 255.255.255.128
  no shutdown
 !
-{% endif %}
-! DHCP snooping + DAI protect the DHCP-served segments (participant + wifi).
-! Bindings are built from DHCP traffic on the trusted uplink; edge ports stay
-! untrusted and are rate-limited, and ARP is validated against the bindings.
-ip dhcp snooping
-ip dhcp snooping vlan {{ access_vlan }}
-ip arp inspection vlan {{ access_vlan }}
+ip default-gateway 172.16.1.1
 !
+! Participant access ports — all copper GigabitEthernet ports.
+! portfast + bpduguard: no switches should ever be plugged in here.
+! storm-control at 10% is a loose cap that stops broadcast storms without
+! impacting normal LAN traffic bursts.
 interface range {{ access_ports }}
- description participant
  switchport mode access
  switchport access vlan {{ access_vlan }}
- ! DHCP-served port (auto via gateway DHCP, not static) — untrusted by default
- ! for snooping/DAI: rate-limit DHCP and validate ARP below, with port-security
- ! + storm-control as the outer layer.
- switchport port-security
- switchport port-security maximum 2
- switchport port-security violation restrict
- switchport port-security mac-address sticky
  spanning-tree portfast
  spanning-tree bpduguard enable
- ip dhcp snooping limit rate 10
- ip arp inspection limit rate 15
- storm-control broadcast level 1
+ storm-control broadcast level 10.00
+ storm-control multicast level 10.00
 !
-interface {{ uplink_interface }}
+! Dual 10G uplinks to the core switches (one to core1, one to core2).
+! Native VLAN 50 matches the cores' expectation and carries the management
+! segment untagged so the switch is reachable even if VLAN tagging breaks.
+{% for uplink in uplink_interfaces %}
+interface {{ uplink }}
  description uplink-to-core
  switchport mode trunk
+ switchport trunk native vlan 50
  switchport trunk allowed vlan {{ uplink_allowed_vlans }}
- ! Toward the DHCP server / gateway — trust snooping + DAI here.
- ip dhcp snooping trust
- ip arp inspection trust
+!
+{% endfor %}
+! AAA: local auth only. Required for SSH pubkey-chain to activate.
+aaa new-model
+aaa authentication login default local
+aaa authorization exec default local
 !
