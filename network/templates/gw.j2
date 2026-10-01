@@ -209,6 +209,8 @@ ip access-list extended ISP-INGRESS
  9 deny tcp any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }} eq 445
  11 deny tcp any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }} eq 3389
  12 deny tcp any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }} eq 5900
+ 13 deny tcp any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }} eq 5432
+ 14 deny tcp any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }} eq 8009
  15 permit ip any {{ participant_subnet | ansible.utils.ipaddr('network') }} {{ participant_subnet | ansible.utils.ipaddr('hostmask') }}
  20 permit tcp any any established
  30 permit udp any host {{ isp_address | ansible.utils.ipaddr('address') }}
