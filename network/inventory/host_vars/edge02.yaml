@@ -1,0 +1,5 @@
+---
+# EDGE-SW-02 — WS-C2960X-48FPD-L, daisy-chained behind edge09 Gi1/0/48
+# (not a direct core uplink). Found via MAC table audit 2026-10-01 — was
+# not previously known to be part of the fabric. Not pingable/reachable
+# yet; commented out in hosts.yaml until SSH is confirmed working.
