@@ -70,3 +70,9 @@ mgmt_subnet: 10.0.20.0/24  # OOB router VLAN 20 (gw-mgmt); gw1 Gi0/0 = .2
 banner: |
   LANmine network device - managed by GitOps (github.com/LANmine/lanmine_infra).
   Do not configure by hand; changes are overwritten. Authorised access only.
+
+# SSH public key for the lanmine-device-access key pair (id_rsa_lanmine).
+# Base64 blob only — the templates prepend the key type where needed.
+# IOS: ip ssh pubkey-chain / key-string (72-char chunks via Jinja batch filter)
+# NX-OS: username admin sshkey ssh-rsa <blob>
+ssh_admin_pubkey: "AAAAB3NzaC1yc2EAAAADAQABAAABgQCana8+mqlQ+M7U5RpUKpKHBxhzGPj81Czq0gwVY5deP5m8vvihRLNLKlfmMqn+l34FrF7GxpKFkKpygOLztxmHwrf723Kc3obEl3SOyCcqMiFvxyUbMGCQ+R5BoOuLC+yFQE7+DVoF7rnhdCh8QwrTvTC36qHlBZgANPRRXRxINW4fylToG/Ka15UIUkvJDF72/iuohYf4Ds7xTg+HPKXY0FCkLeqELe3m53RVRqUBfJkuLN/CfkErBoodRW/2Rz3FaiifSDn9FO+Di32xOgicwgqwOnZi8MOWavUABYur5kTXQwgDyfBI74MpyYyBkJswkHIRAIumRM5NVAafooGgoZFzS7eIveVpxk5uXZuxaf4uCbTmNSEL0/dnJj2WF6kovzPK+uSmUdg/+6nYiVp0mA/1U/agh5XXy8g4OkuKto6oS12dlEvE9fNrXjVkffIzS83F5GSCIlPpxaA/Ch6FRsDnNKD6TcqxNpzrQwBYITYosC+KuW9ufYr2C3BxFvc="

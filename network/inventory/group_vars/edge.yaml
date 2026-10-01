@@ -1,10 +1,28 @@
 ---
-# edge01..edgeNN — participant access switches.
+# edge switches — WS-C2960X participant access layer.
 role: edge
-uplink_interface: GigabitEthernet1/0/48     # trunk up to a core switch
-access_ports: "GigabitEthernet1/0/1 - 47"   # participant ports
-access_vlan: 100                           # participant VLAN — reused old switches' contestant ports already run VLAN 100 as-is
-uplink_allowed_vlans: "50,100,200,202,210"    # legacy-mgmt + participant + mgmt + ap-mgmt + wifi
-# AP ports: set per-host once the real edge hardware is known, e.g.
-#   ap_ports: "GigabitEthernet1/0/45 - 48"   # FlexConnect trunk (native 202, tagged 210)
-# This renders the AP trunk block in edge.j2; without it the switch has no AP ports.
+
+# Participant access ports (all copper GigabitEthernet ports on a 2960X-48).
+access_ports: "GigabitEthernet1/0/1 - 48"
+access_vlan: 100
+
+# Dual 10G SFP+ uplinks toward the core switches. Both are trunked and carry
+# the same VLANs: legacy-mgmt (50) for management reachability + participants
+# (100). Native VLAN 50 so the management SVI is reachable untagged.
+uplink_interfaces:
+  - TenGigabitEthernet1/0/1
+  - TenGigabitEthernet1/0/2
+uplink_allowed_vlans: "50,100"
+
+# Legacy switch IOS needs enable for Ansible privilege escalation.
+ansible_become: true
+ansible_become_method: enable
+ansible_become_password: "{{ lookup('env', 'NET_PASSWORD') }}"
+
+# SSH: legacy 2960X only supports weaker algorithms.
+ansible_ssh_common_args: >-
+  -o KexAlgorithms=+diffie-hellman-group14-sha1,diffie-hellman-group1-sha1
+  -o HostKeyAlgorithms=+ssh-rsa
+  -o Ciphers=+aes128-cbc,3des-cbc,aes256-cbc
+  -o PubkeyAcceptedAlgorithms=+ssh-rsa
+  -o ProxyJump=placeholder

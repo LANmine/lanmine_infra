@@ -2,6 +2,12 @@
 ! Rendered from git. Do not edit on the device.
 hostname {{ inventory_hostname }}
 !
+feature lldp
+!
+{% if ssh_admin_pubkey is defined %}
+username admin sshkey ssh-rsa {{ ssh_admin_pubkey }}
+{% endif %}
+!
 {% for ntp in ntp_servers %}
 ntp server {{ ntp }}
 {% endfor %}

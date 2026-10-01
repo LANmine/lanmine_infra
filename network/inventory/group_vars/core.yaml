@@ -1,6 +1,12 @@
 ---
 # core1/core2 — Nexus core. Aggregates the edge switches; carries all VLANs.
 role: core
+# Core switches are on the legacy-mgmt VLAN (172.16.1.0/25) which is only
+# reachable from hl0-mgmt01 via placeholder as a jump host.
+ansible_ssh_proxy_command: "ssh -W %h:%p -q -o StrictHostKeyChecking=no placeholder"
+ansible_become: true
+ansible_become_method: enable
+ansible_become_password: "{{ lookup('env', 'NET_PASSWORD') }}"
 # Downlink ports toward the edge switches carry the legacy-mgmt + participant +
 # fabric mgmt + ap-mgmt + wifi VLANs as a trunk.
 edge_trunk_allowed_vlans: "50,100,200,202,210"
