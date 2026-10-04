@@ -2,10 +2,11 @@ name: Validate stacks
 
 # Runs on every Pull Request that touches a stack.
 # It only checks that your docker-compose.yml is valid — it does NOT deploy anything.
-on:
-  pull_request:
-    paths:
-      - 'stacks/**'
+# Disabled: LAN event over
+# on:
+#   pull_request:
+#     paths:
+#       - 'stacks/**'
 
 permissions:
   contents: read

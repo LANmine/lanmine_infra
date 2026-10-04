@@ -14,9 +14,10 @@ on:
         description: 'Stack(s) to redeploy: a name, several space-separated names, or "all"'
         required: true
         default: all
-  schedule:
-    # 02:17 UTC ≈ 04:17 Oslo — nightly, off-peak. Refreshes all :latest images.
-    - cron: '17 2 * * *'
+  # Disabled: LAN event over
+  # schedule:
+  #   # 02:17 UTC ≈ 04:17 Oslo — nightly, off-peak. Refreshes all :latest images.
+  #   - cron: '17 2 * * *'
 
 permissions:
   contents: read

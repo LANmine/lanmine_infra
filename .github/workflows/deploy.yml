@@ -2,11 +2,12 @@ name: Deploy to server
 
 # Runs when a change to a stack lands on the main branch (i.e. after a PR is merged).
 # It works out which stacks changed and tells Portainer to deploy just those.
-on:
-  push:
-    branches: [main]
-    paths:
-      - 'stacks/**'
+# Disabled: LAN event over
+# on:
+#   push:
+#     branches: [main]
+#     paths:
+#       - 'stacks/**'
 
 # Least privilege: the workflow only needs to read the repo.
 permissions:

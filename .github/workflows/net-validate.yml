@@ -3,10 +3,11 @@ name: Validate network configs
 # Runs on every PR touching network/. Lints and renders the configs on a
 # GitHub-hosted runner — NO secrets, NO device access — so it is safe for PRs
 # from forks/volunteers.
-on:
-  pull_request:
-    paths:
-      - 'network/**'
+# Disabled: LAN event over
+# on:
+#   pull_request:
+#     paths:
+#       - 'network/**'
 
 permissions:
   contents: read
