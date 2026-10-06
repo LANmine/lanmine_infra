@@ -7,17 +7,17 @@ name: Redeploy
 #   Actions -> Redeploy -> Run workflow -> type a stack name (or "all")
 #
 # It also runs automatically every night to pull the latest images for all stacks.
-on:
-  workflow_dispatch:
-    inputs:
-      stacks:
-        description: 'Stack(s) to redeploy: a name, several space-separated names, or "all"'
-        required: true
-        default: all
-  # Disabled: LAN event over
-  # schedule:
-  #   # 02:17 UTC ≈ 04:17 Oslo — nightly, off-peak. Refreshes all :latest images.
-  #   - cron: '17 2 * * *'
+# All triggers disabled: LAN event over
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       stacks:
+#         description: 'Stack(s) to redeploy: a name, several space-separated names, or "all"'
+#         required: true
+#         default: all
+#   schedule:
+#     # 02:17 UTC ≈ 04:17 Oslo — nightly, off-peak. Refreshes all :latest images.
+#     - cron: '17 2 * * *'
 
 permissions:
   contents: read
